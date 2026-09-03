@@ -108,7 +108,7 @@
             padding: 0 16px;
         }
 
-        /* HERO BANNER AZUL */
+        /* HERO BANNER */
         .hero-banner {
             background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
             border-radius: 20px;
@@ -137,19 +137,6 @@
         .hero-banner p {
             font-size: 0.9rem;
             opacity: 0.9;
-        }
-
-        .mascota-box {
-            position: absolute;
-            right: 20px;
-            top: 20px;
-            background: rgba(255, 255, 255, 0.95);
-            color: #1e293b;
-            padding: 10px 14px;
-            border-radius: 14px;
-            font-size: 0.75rem;
-            max-width: 170px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
 
         /* CLIMA CARD */
@@ -187,33 +174,36 @@
             color: var(--text-muted);
         }
 
-        /* CALCULADORA AGUA */
-        .calc-card {
+        /* CARDS / MODULOS GENERICS */
+        .card-box {
             background: white;
             border-radius: 16px;
             padding: 20px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.02);
-            margin-bottom: 28px;
+            margin-bottom: 20px;
         }
 
-        .calc-card h3 {
+        .card-box h3 {
             font-size: 1rem;
-            color: var(--text-dark);
+            color: var(--primary-dark);
             margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
 
-        .calc-card p {
+        .card-box p {
             font-size: 0.8rem;
             color: var(--text-muted);
             margin-bottom: 12px;
         }
 
-        .calc-form {
+        .inline-form {
             display: flex;
             gap: 10px;
         }
 
-        .calc-input {
+        .inline-input {
             flex-grow: 1;
             padding: 10px 14px;
             border: 1px solid #e2e8f0;
@@ -222,7 +212,7 @@
             outline: none;
         }
 
-        .calc-btn {
+        .btn-action {
             background-color: var(--primary);
             color: white;
             border: none;
@@ -232,11 +222,16 @@
             cursor: pointer;
         }
 
+        .btn-dark {
+            background-color: #0f172a;
+        }
+
         /* GRID PRODUCTOS */
         .grid-productos {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
             gap: 20px;
+            margin-bottom: 24px;
         }
 
         .card-producto {
@@ -279,7 +274,39 @@
             margin-top: auto;
         }
 
-        /* DRAWER LATERAL DEL CARRITO */
+        /* BANNER COMPROMISO AMAZONAS */
+        .compromiso-banner {
+            background-color: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            border-radius: 16px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .compromiso-tag {
+            color: #16a34a;
+            font-size: 0.8rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            margin-bottom: 6px;
+        }
+
+        .compromiso-banner h4 {
+            color: #14532d;
+            font-size: 1rem;
+            font-weight: 800;
+            margin-bottom: 6px;
+        }
+
+        .compromiso-banner p {
+            color: #365314;
+            font-size: 0.82rem;
+            line-height: 1.4;
+        }
+
+        /* DRAWER LATERAL CARRITO */
         .overlay {
             display: none;
             position: fixed;
@@ -315,7 +342,7 @@
         }
 
         .drawer-header h3 {
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             color: #1e293b;
         }
 
@@ -344,25 +371,49 @@
             padding: 10px 12px;
             border: 1px solid #cbd5e1;
             border-radius: 8px;
-            font-size: 0.9rem;
+            font-size: 0.88rem;
             outline: none;
+            background: white;
         }
 
         #map {
             width: 100%;
-            height: 180px;
+            height: 160px;
             border-radius: 12px;
             margin-top: 6px;
             border: 1px solid #e2e8f0;
+        }
+
+        /* PROPINA BUTTONS */
+        .propina-group {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-propina {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid #cbd5e1;
+            background: #f8fafc;
+            color: #0284c7;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.82rem;
+        }
+
+        .btn-propina.active {
+            background: #e0f2fe;
+            border-color: #0284c7;
         }
 
         .total-box {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-size: 1.1rem;
+            font-size: 1.05rem;
             font-weight: bold;
-            margin: 16px 0;
+            margin: 18px 0;
         }
 
         .total-amount {
@@ -378,7 +429,7 @@
             padding: 12px;
             border-radius: 10px;
             font-weight: bold;
-            font-size: 1rem;
+            font-size: 0.95rem;
             cursor: pointer;
             box-shadow: 0 2px 4px rgba(2,132,199,0.3);
         }
@@ -406,9 +457,6 @@
             <span class="hero-tag">🌿 Caranavi - Capital Cafetalera de Bolivia</span>
             <h2>Agua Purificada Ultra-Fresca a tu Puerta</h2>
             <p>Hidratación garantizada para combatir el calor de los Yungas.</p>
-            <div class="mascota-box">
-                ¡Hola! Recuerda beber 2 Litros de agua hoy en Caranavi. 💧
-            </div>
         </div>
 
         <!-- CLIMA -->
@@ -424,17 +472,27 @@
         </div>
 
         <!-- CALCULADORA DE AGUA -->
-        <div class="calc-card">
+        <div class="card-box">
             <h3>📊 Calculadora de Agua para el Clima Yungueño</h3>
             <p>Ingresa tu peso aproximado para saber cuánta agua exige tu cuerpo hoy:</p>
-            <div class="calc-form">
-                <input type="number" id="peso-input" class="calc-input" placeholder="Ej: 68 (Kg)">
-                <button class="calc-btn" onclick="calcularAgua()">Calcular</button>
+            <div class="inline-form">
+                <input type="number" id="peso-input" class="inline-input" placeholder="Ej: 68 (Kg)">
+                <button class="btn-action" onclick="calcularAgua()">Calcular</button>
+            </div>
+        </div>
+
+        <!-- ¿DONDE ESTA MI PEDIDO? -->
+        <div class="card-box">
+            <h3>🚚 ¿Dónde está mi pedido?</h3>
+            <p>Ingresa tu número de pedido para consultar el estado actual de la entrega:</p>
+            <div class="inline-form">
+                <input type="number" id="num-pedido-input" class="inline-input" placeholder="Escribe el Nº de Pedido (Ej: 101)">
+                <button class="btn-action btn-dark" onclick="consultarPedido()">Consultar</button>
             </div>
         </div>
 
         <!-- PRODUCTOS -->
-        <h3 style="margin-bottom: 16px;">Nuestros Productos Disponibles</h3>
+        <h3 style="margin-bottom: 16px; font-weight: 800; font-size: 1.1rem;">Nuestros Productos Disponibles</h3>
         <div class="grid-productos">
             <div class="card-producto">
                 <img src="https://images.unsplash.com/photo-1548839140-29a749e1bc4e?auto=format&fit=crop&w=400&q=80" alt="Botellón 20L">
@@ -454,6 +512,13 @@
                 <div class="precio">Bs. 25.00</div>
                 <button class="btn-add" onclick="agregarAlCarrito('Pack Botellas 500ml (12 u.)', 25)">Añadir al Carrito</button>
             </div>
+        </div>
+
+        <!-- COMPROMISO AMAZONAS -->
+        <div class="compromiso-banner">
+            <div class="compromiso-tag">💧 Compromiso Amazonas</div>
+            <h4>Agua Pura para la Puerta de la Amazonía</h4>
+            <p>En Caranavi, el clima cálido y la humedad de los Yungas demandan una hidratación constante y segura. Sometemos nuestra agua a filtración multicapa con ósmosis inversa y luz ultravioleta para cuidar a tu familia.</p>
         </div>
     </main>
 
@@ -489,6 +554,32 @@
                 <input type="hidden" id="longitud">
             </div>
 
+            <div class="form-group">
+                <label>⏱️ Horario de Entrega</label>
+                <select id="horario_entrega">
+                    <option value="Express">⚡ Express (Inmediata ~ 30 min)</option>
+                    <option value="Tarde">🌅 Por la Tarde (14:00 - 18:00)</option>
+                    <option value="Mañana">☀️ Mañana Siguiente (08:00 - 12:00)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>💳 Método de Pago</label>
+                <select id="metodo_pago">
+                    <option value="Efectivo">💵 Efectivo (Al entregar)</option>
+                    <option value="QR">📱 Transferencia QR</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>🤝 Propina Repartidor</label>
+                <div class="propina-group">
+                    <button type="button" class="btn-propina active" onclick="seleccionarPropina(0, this)">Bs. 0</button>
+                    <button type="button" class="btn-propina" onclick="seleccionarPropina(2, this)">Bs. 2</button>
+                    <button type="button" class="btn-propina" onclick="seleccionarPropina(5, this)">Bs. 5</button>
+                </div>
+            </div>
+
             <div class="total-box">
                 <span>Total final:</span>
                 <span class="total-amount" id="total-monto">Bs. 0.00</span>
@@ -504,9 +595,9 @@
     <script>
         const API_URL = 'http://166.114.155.215:3000';
         let carrito = [];
+        let propina = 0;
         let map, marker;
 
-        // Inicializar Mapa centrado en Caranavi (-15.8202, -67.5586)
         function initMap() {
             if (map) return;
             const caranaviCoords = [-15.8202, -67.5586];
@@ -521,7 +612,7 @@
             document.getElementById('latitud').value = caranaviCoords[0];
             document.getElementById('longitud').value = caranaviCoords[1];
 
-            marker.on('dragend', function (e) {
+            marker.on('dragend', function () {
                 const position = marker.getLatLng();
                 document.getElementById('latitud').value = position.lat;
                 document.getElementById('longitud').value = position.lng;
@@ -553,11 +644,21 @@
         function agregarAlCarrito(nombre, precio) {
             carrito.push({ nombre, precio });
             document.getElementById('cant-cart').innerText = carrito.length;
-            
-            let total = carrito.reduce((sum, item) => sum + item.precio, 0);
-            document.getElementById('total-monto').innerText = `Bs. ${total.toFixed(2)}`;
-            
+            actualizarTotal();
             toggleCart(true);
+        }
+
+        function seleccionarPropina(monto, element) {
+            propina = monto;
+            document.querySelectorAll('.btn-propina').forEach(btn => btn.classList.remove('active'));
+            element.classList.add('active');
+            actualizarTotal();
+        }
+
+        function actualizarTotal() {
+            let subtotal = carrito.reduce((sum, item) => sum + item.precio, 0);
+            let total = subtotal + propina;
+            document.getElementById('total-monto').innerText = `Bs. ${total.toFixed(2)}`;
         }
 
         function calcularAgua() {
@@ -567,11 +668,26 @@
             alert(`Para tu peso de ${peso}kg, deberías consumir aproximadamente ${litros} Litros de agua al día en el clima de Caranavi.`);
         }
 
+        async function consultarPedido() {
+            const numPedido = document.getElementById('num-pedido-input').value;
+            if (!numPedido) return alert('Por favor ingresa un número de pedido.');
+            try {
+                const res = await fetch(`${API_URL}/api/pedidos/${numPedido}`);
+                if (!res.ok) throw new Error('Pedido no encontrado');
+                const data = await res.json();
+                alert(`Pedido #${numPedido}:\nCliente: ${data.cliente_nombre}\nEstado: ${data.estado || 'En camino'}\nTotal: Bs. ${data.total}`);
+            } catch (err) {
+                alert('No se encontró el pedido o la API no está respondiendo.');
+            }
+        }
+
         document.getElementById('form-pedido').addEventListener('submit', async (e) => {
             e.preventDefault();
             if (carrito.length === 0) return alert('Agrega al menos un producto al carrito.');
 
-            const total = carrito.reduce((sum, item) => sum + item.precio, 0);
+            const subtotal = carrito.reduce((sum, item) => sum + item.precio, 0);
+            const total = subtotal + propina;
+
             const btn = document.getElementById('btn-enviar');
             btn.disabled = true;
             btn.innerText = 'Enviando...';
@@ -582,7 +698,10 @@
                 direccion: document.getElementById('cliente_direccion').value,
                 latitud: document.getElementById('latitud').value,
                 longitud: document.getElementById('longitud').value,
-                total
+                horario_entrega: document.getElementById('horario_entrega').value,
+                metodo_pago: document.getElementById('metodo_pago').value,
+                propina: propina,
+                total: total
             };
 
             try {
@@ -597,8 +716,9 @@
                 const data = await res.json();
                 alert(`¡Pedido #${data.pedido_id || ''} enviado con éxito! Nos pondremos en contacto.`);
                 carrito = [];
+                propina = 0;
                 document.getElementById('cant-cart').innerText = '0';
-                document.getElementById('total-monto').innerText = 'Bs. 0.00';
+                actualizarTotal();
                 toggleCart(false);
                 document.getElementById('form-pedido').reset();
             } catch (err) {
