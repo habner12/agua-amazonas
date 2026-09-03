@@ -3,14 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AMAZONAS - Caranavi App</title>
+    <title>AMAZONAS - Pedir Agua</title>
+    <!-- Leaflet CSS para el mapa -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         :root {
-            --primary-blue: #0284c7;
-            --dark-blue: #0369a1;
-            --bg-light: #f8fafc;
+            --primary: #0284c7;
+            --primary-dark: #0369a1;
+            --bg: #f8fafc;
             --card-bg: #ffffff;
-            --text-main: #1e293b;
+            --text-dark: #1e293b;
             --text-muted: #64748b;
         }
 
@@ -22,14 +24,14 @@
         }
 
         body {
-            background-color: var(--bg-light);
-            color: var(--text-main);
-            padding-bottom: 50px;
+            background-color: var(--bg);
+            color: var(--text-dark);
+            padding-bottom: 40px;
         }
 
         /* HEADER */
         header {
-            background: #ffffff;
+            background: white;
             padding: 16px 24px;
             display: flex;
             justify-content: space-between;
@@ -40,17 +42,17 @@
             z-index: 100;
         }
 
-        .logo-box {
+        .logo-container {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
         }
 
         .logo-icon {
             width: 36px;
             height: 36px;
             background: #e0f2fe;
-            color: var(--primary-blue);
+            color: var(--primary);
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -59,8 +61,8 @@
         }
 
         .logo-text h1 {
-            font-size: 1.25rem;
-            color: #0369a1;
+            font-size: 1.2rem;
+            color: var(--primary-dark);
             font-weight: 800;
             line-height: 1;
         }
@@ -72,8 +74,8 @@
             letter-spacing: 1px;
         }
 
-        .btn-cart {
-            background-color: #0284c7;
+        .btn-carrito {
+            background-color: var(--primary);
             color: white;
             border: none;
             padding: 10px 18px;
@@ -83,12 +85,12 @@
             align-items: center;
             gap: 8px;
             cursor: pointer;
-            box-shadow: 0 2px 4px rgba(2, 132, 199, 0.2);
+            box-shadow: 0 2px 4px rgba(2,132,199,0.2);
         }
 
         .badge-cart {
             background: white;
-            color: #0284c7;
+            color: var(--primary);
             border-radius: 50%;
             width: 20px;
             height: 20px;
@@ -101,7 +103,7 @@
 
         /* MAIN CONTAINER */
         main {
-            max-width: 1000px;
+            max-width: 900px;
             margin: 20px auto;
             padding: 0 16px;
         }
@@ -113,7 +115,6 @@
             padding: 28px;
             color: white;
             position: relative;
-            overflow: hidden;
             margin-bottom: 20px;
         }
 
@@ -151,7 +152,7 @@
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
 
-        /* CARD CLIMA */
+        /* CLIMA CARD */
         .weather-card {
             background: #f0f9ff;
             border: 1px solid #bae6fd;
@@ -172,18 +173,18 @@
         .temp {
             font-size: 1.8rem;
             font-weight: 800;
-            color: #0369a1;
+            color: var(--primary-dark);
         }
 
         .weather-text h4 {
             font-size: 0.95rem;
-            color: #0369a1;
+            color: var(--primary-dark);
             font-weight: 700;
         }
 
         .weather-text p {
             font-size: 0.8rem;
-            color: #64748b;
+            color: var(--text-muted);
         }
 
         /* CALCULADORA AGUA */
@@ -197,16 +198,13 @@
 
         .calc-card h3 {
             font-size: 1rem;
-            color: #1e293b;
+            color: var(--text-dark);
             margin-bottom: 4px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
         }
 
         .calc-card p {
             font-size: 0.8rem;
-            color: #64748b;
+            color: var(--text-muted);
             margin-bottom: 12px;
         }
 
@@ -225,7 +223,7 @@
         }
 
         .calc-btn {
-            background-color: #0284c7;
+            background-color: var(--primary);
             color: white;
             border: none;
             padding: 10px 20px;
@@ -234,14 +232,14 @@
             cursor: pointer;
         }
 
-        /* PRODUCTOS GRID */
-        .products-grid {
+        /* GRID PRODUCTOS */
+        .grid-productos {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
             gap: 20px;
         }
 
-        .product-card {
+        .card-producto {
             background: white;
             border-radius: 16px;
             padding: 16px;
@@ -250,7 +248,7 @@
             flex-direction: column;
         }
 
-        .product-img {
+        .card-producto img {
             width: 100%;
             height: 160px;
             object-fit: cover;
@@ -258,21 +256,21 @@
             margin-bottom: 12px;
         }
 
-        .product-card h4 {
+        .card-producto h4 {
             font-size: 1rem;
             margin-bottom: 4px;
         }
 
-        .product-price {
+        .precio {
             font-size: 1.1rem;
             font-weight: 800;
-            color: #0284c7;
+            color: var(--primary);
             margin-bottom: 12px;
         }
 
-        .btn-add-item {
+        .btn-add {
             background-color: #e0f2fe;
-            color: #0284c7;
+            color: var(--primary);
             border: none;
             padding: 10px;
             border-radius: 8px;
@@ -281,34 +279,56 @@
             margin-top: auto;
         }
 
-        /* MODAL CARRITO */
-        .modal {
+        /* DRAWER LATERAL DEL CARRITO */
+        .overlay {
             display: none;
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
+            background: rgba(0, 0, 0, 0.4);
+            z-index: 999;
         }
 
-        .modal-content {
+        .drawer-cart {
+            position: fixed;
+            top: 0; right: -420px;
+            width: 100%; max-width: 400px;
+            height: 100%;
             background: white;
-            width: 90%;
-            max-width: 440px;
-            border-radius: 16px;
-            padding: 20px;
+            z-index: 1000;
+            box-shadow: -4px 0 15px rgba(0,0,0,0.1);
+            transition: right 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            padding: 24px;
         }
 
-        .modal-header {
+        .drawer-cart.active {
+            right: 0;
+        }
+
+        .drawer-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 16px;
+            margin-bottom: 20px;
+        }
+
+        .drawer-header h3 {
+            font-size: 1.2rem;
+            color: #1e293b;
+        }
+
+        .close-drawer {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #94a3b8;
         }
 
         .form-group {
-            margin-bottom: 12px;
+            margin-bottom: 14px;
         }
 
         .form-group label {
@@ -316,39 +336,66 @@
             font-size: 0.8rem;
             font-weight: 600;
             margin-bottom: 4px;
+            color: #334155;
         }
 
         .form-group input, .form-group select {
             width: 100%;
-            padding: 10px;
+            padding: 10px 12px;
             border: 1px solid #cbd5e1;
             border-radius: 8px;
+            font-size: 0.9rem;
+            outline: none;
         }
 
-        .btn-submit {
+        #map {
             width: 100%;
-            background: #0284c7;
+            height: 180px;
+            border-radius: 12px;
+            margin-top: 6px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .total-box {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin: 16px 0;
+        }
+
+        .total-amount {
+            color: var(--primary);
+            font-size: 1.3rem;
+        }
+
+        .btn-confirmar {
+            width: 100%;
+            background: var(--primary);
             color: white;
             border: none;
             padding: 12px;
-            border-radius: 8px;
+            border-radius: 10px;
             font-weight: bold;
+            font-size: 1rem;
             cursor: pointer;
-            margin-top: 8px;
+            box-shadow: 0 2px 4px rgba(2,132,199,0.3);
         }
     </style>
 </head>
 <body>
 
+    <!-- HEADER -->
     <header>
-        <div class="logo-box">
+        <div class="logo-container">
             <div class="logo-icon">💧</div>
             <div class="logo-text">
                 <h1>AMAZONAS</h1>
                 <span>YUNGAS • CARANAVI</span>
             </div>
         </div>
-        <button class="btn-cart" onclick="abrirCarrito()">
+        <button class="btn-carrito" onclick="toggleCart(true)">
             🛒 Mi Carrito <span class="badge-cart" id="cant-cart">0</span>
         </button>
     </header>
@@ -376,7 +423,7 @@
             <div style="font-size: 1.8rem;">☀️</div>
         </div>
 
-        <!-- CALCULADORA -->
+        <!-- CALCULADORA DE AGUA -->
         <div class="calc-card">
             <h3>📊 Calculadora de Agua para el Clima Yungueño</h3>
             <p>Ingresa tu peso aproximado para saber cuánta agua exige tu cuerpo hoy:</p>
@@ -388,85 +435,129 @@
 
         <!-- PRODUCTOS -->
         <h3 style="margin-bottom: 16px;">Nuestros Productos Disponibles</h3>
-        <div class="products-grid">
-            <div class="product-card">
-                <img src="https://images.unsplash.com/photo-1548839140-29a749e1bc4e?auto=format&fit=crop&w=400&q=80" class="product-img" alt="Botellón">
+        <div class="grid-productos">
+            <div class="card-producto">
+                <img src="https://images.unsplash.com/photo-1548839140-29a749e1bc4e?auto=format&fit=crop&w=400&q=80" alt="Botellón 20L">
                 <h4>Botellón 20L (Recarga)</h4>
-                <div class="product-price">Bs. 15.00</div>
-                <button class="btn-add-item" onclick="agregarItem('Botellón 20L (Recarga)', 15)">Añadir al Carrito</button>
+                <div class="precio">Bs. 15.00</div>
+                <button class="btn-add" onclick="agregarAlCarrito('Botellón 20L (Recarga)', 15)">Añadir al Carrito</button>
             </div>
-            <div class="product-card">
-                <img src="https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&w=400&q=80" class="product-img" alt="Sachet">
+            <div class="card-producto">
+                <img src="https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&w=400&q=80" alt="Bolsa Sachet">
                 <h4>Bolsa Sachet 500ml (Pack 20)</h4>
-                <div class="product-price">Bs. 10.00</div>
-                <button class="btn-add-item" onclick="agregarItem('Bolsa Sachet 500ml (Pack 20)', 10)">Añadir al Carrito</button>
+                <div class="precio">Bs. 10.00</div>
+                <button class="btn-add" onclick="agregarAlCarrito('Bolsa Sachet 500ml (Pack 20)', 10)">Añadir al Carrito</button>
             </div>
-            <div class="product-card">
-                <img src="https://images.unsplash.com/photo-1602143407151-7111542de6e8?auto=format&fit=crop&w=400&q=80" class="product-img" alt="Pack Botellas">
+            <div class="card-producto">
+                <img src="https://images.unsplash.com/photo-1602143407151-7111542de6e8?auto=format&fit=crop&w=400&q=80" alt="Pack Botellas">
                 <h4>Pack Botellas 500ml (12 u.)</h4>
-                <div class="product-price">Bs. 25.00</div>
-                <button class="btn-add-item" onclick="agregarItem('Pack Botellas 500ml (12 u.)', 25)">Añadir al Carrito</button>
+                <div class="precio">Bs. 25.00</div>
+                <button class="btn-add" onclick="agregarAlCarrito('Pack Botellas 500ml (12 u.)', 25)">Añadir al Carrito</button>
             </div>
         </div>
     </main>
 
-    <!-- MODAL -->
-    <div id="modal-pedidos" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>🛍️ Realizar Pedido</h3>
-                <button onclick="cerrarCarrito()" style="border:none; background:none; font-size:1.2rem; cursor:pointer;">✕</button>
-            </div>
-            <form id="form-pedidos">
-                <div class="form-group">
-                    <label>Nombre Completo</label>
-                    <input type="text" id="cliente_nombre" required>
-                </div>
-                <div class="form-group">
-                    <label>Teléfono</label>
-                    <input type="tel" id="cliente_telefono" required>
-                </div>
-                <div class="form-group">
-                    <label>Zona</label>
-                    <select id="cliente_zona">
-                        <option value="Zona Centro">Zona Centro</option>
-                        <option value="Zona Costanera">Zona Costanera</option>
-                        <option value="Zona Batallón">Zona Batallón</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Dirección Exacta</label>
-                    <input type="text" id="cliente_direccion" required>
-                </div>
-                <div class="form-group">
-                    <label>Método de Pago</label>
-                    <select id="metodo_pago">
-                        <option value="Efectivo al Repartidor">Efectivo al Repartidor</option>
-                        <option value="Pago por QR">Pago por QR</option>
-                    </select>
-                </div>
-                <button type="submit" class="btn-submit">Confirmar Pedido</button>
-            </form>
+    <!-- OVERLAY & DRAWER CARRITO -->
+    <div class="overlay" id="overlay" onclick="toggleCart(false)"></div>
+
+    <div class="drawer-cart" id="drawer-cart">
+        <div class="drawer-header">
+            <h3>🛒 Tu Pedido Amazonas</h3>
+            <button class="close-drawer" onclick="toggleCart(false)">&times;</button>
         </div>
+
+        <form id="form-pedido">
+            <div class="form-group">
+                <label>Nombre y Apellido</label>
+                <input type="text" id="cliente_nombre" placeholder="Ej: Juan Pérez" required>
+            </div>
+
+            <div class="form-group">
+                <label>Teléfono de WhatsApp</label>
+                <input type="tel" id="cliente_telefono" placeholder="Ej: 71234567" required>
+            </div>
+
+            <div class="form-group">
+                <label>Dirección / Referencia de entrega</label>
+                <input type="text" id="cliente_direccion" placeholder="Ej: Av. Mariscal Santa Cruz frente a la plaza" required>
+            </div>
+
+            <div class="form-group">
+                <label>📍 Selecciona tu casa en el Mapa (Caranavi):</label>
+                <div id="map"></div>
+                <input type="hidden" id="latitud">
+                <input type="hidden" id="longitud">
+            </div>
+
+            <div class="total-box">
+                <span>Total final:</span>
+                <span class="total-amount" id="total-monto">Bs. 0.00</span>
+            </div>
+
+            <button type="submit" class="btn-confirmar" id="btn-enviar">Confirmar y Enviar Pedido</button>
+        </form>
     </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
     <script>
         const API_URL = 'http://166.114.155.215:3000';
         let carrito = [];
+        let map, marker;
 
-        function agregarItem(nombre, precio) {
+        // Inicializar Mapa centrado en Caranavi (-15.8202, -67.5586)
+        function initMap() {
+            if (map) return;
+            const caranaviCoords = [-15.8202, -67.5586];
+            map = L.map('map').setView(caranaviCoords, 15);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap'
+            }).addTo(map);
+
+            marker = L.marker(caranaviCoords, { draggable: true }).addTo(map);
+
+            document.getElementById('latitud').value = caranaviCoords[0];
+            document.getElementById('longitud').value = caranaviCoords[1];
+
+            marker.on('dragend', function (e) {
+                const position = marker.getLatLng();
+                document.getElementById('latitud').value = position.lat;
+                document.getElementById('longitud').value = position.lng;
+            });
+
+            map.on('click', function(e) {
+                marker.setLatLng(e.latlng);
+                document.getElementById('latitud').value = e.latlng.lat;
+                document.getElementById('longitud').value = e.latlng.lng;
+            });
+        }
+
+        function toggleCart(open) {
+            const drawer = document.getElementById('drawer-cart');
+            const overlay = document.getElementById('overlay');
+            if (open) {
+                drawer.classList.add('active');
+                overlay.style.display = 'block';
+                setTimeout(() => {
+                    initMap();
+                    if(map) map.invalidateSize();
+                }, 300);
+            } else {
+                drawer.classList.remove('active');
+                overlay.style.display = 'none';
+            }
+        }
+
+        function agregarAlCarrito(nombre, precio) {
             carrito.push({ nombre, precio });
             document.getElementById('cant-cart').innerText = carrito.length;
-            alert(`${nombre} añadido al carrito.`);
-        }
-
-        function abrirCarrito() {
-            if (carrito.length === 0) return alert('El carrito está vacío.');
-            document.getElementById('modal-pedidos').style.display = 'flex';
-        }
-
-        function cerrarCarrito() {
-            document.getElementById('modal-pedidos').style.display = 'none';
+            
+            let total = carrito.reduce((sum, item) => sum + item.precio, 0);
+            document.getElementById('total-monto').innerText = `Bs. ${total.toFixed(2)}`;
+            
+            toggleCart(true);
         }
 
         function calcularAgua() {
@@ -476,16 +567,21 @@
             alert(`Para tu peso de ${peso}kg, deberías consumir aproximadamente ${litros} Litros de agua al día en el clima de Caranavi.`);
         }
 
-        document.getElementById('form-pedidos').addEventListener('submit', async (e) => {
+        document.getElementById('form-pedido').addEventListener('submit', async (e) => {
             e.preventDefault();
+            if (carrito.length === 0) return alert('Agrega al menos un producto al carrito.');
+
             const total = carrito.reduce((sum, item) => sum + item.precio, 0);
+            const btn = document.getElementById('btn-enviar');
+            btn.disabled = true;
+            btn.innerText = 'Enviando...';
 
             const payload = {
                 cliente_nombre: document.getElementById('cliente_nombre').value,
                 cliente_telefono: document.getElementById('cliente_telefono').value,
-                zona: document.getElementById('cliente_zona').value,
                 direccion: document.getElementById('cliente_direccion').value,
-                metodo_pago: document.getElementById('metodo_pago').value,
+                latitud: document.getElementById('latitud').value,
+                longitud: document.getElementById('longitud').value,
                 total
             };
 
@@ -495,16 +591,21 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
-                if (res.ok) {
-                    alert('¡Pedido registrado con éxito!');
-                    carrito = [];
-                    document.getElementById('cant-cart').innerText = '0';
-                    cerrarCarrito();
-                } else {
-                    alert('Error al procesar pedido.');
-                }
+
+                if (!res.ok) throw new Error('Error en el servidor');
+
+                const data = await res.json();
+                alert(`¡Pedido #${data.pedido_id || ''} enviado con éxito! Nos pondremos en contacto.`);
+                carrito = [];
+                document.getElementById('cant-cart').innerText = '0';
+                document.getElementById('total-monto').innerText = 'Bs. 0.00';
+                toggleCart(false);
+                document.getElementById('form-pedido').reset();
             } catch (err) {
-                alert('No se pudo conectar con el servidor.');
+                alert('Ocurrió un error al enviar el pedido: ' + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerText = 'Confirmar y Enviar Pedido';
             }
         });
     </script>
