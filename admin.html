@@ -3,206 +3,275 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel de Control - AMAZONAS Admin</title>
-    <style>
-        body { font-family: system-ui, -apple-system, sans-serif; background: #f3f4f6; margin: 0; padding: 20px; color: #1f2937; }
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; margin-bottom: 25px; }
-        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
-        h2 { margin-top: 0; color: #111827; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th, td { text-align: left; padding: 12px; border-bottom: 1px solid #e5e7eb; font-size: 0.88rem; }
-        th { background: #f9fafb; font-weight: 600; }
-        .badge { padding: 4px 8px; border-radius: 9999px; font-size: 0.75rem; font-weight: bold; display: inline-block; }
-        .badge-recibido { background: #fef3c7; color: #92400e; }
-        .badge-aprobado { background: #dbeafe; color: #1e40af; }
-        .badge-encamino { background: #e0e7ff; color: #3730a3; }
-        .badge-entregado { background: #d1fae5; color: #065f46; }
-        .form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
-        input, select, button { padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.9rem; }
-        button { background: #0070f3; color: white; border: none; font-weight: 600; cursor: pointer; }
-        .btn-success { background: #10b981; }
-    </style>
+    <title>AMAZONAS - Panel Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
+<body class="bg-slate-100 p-4 md:p-8 font-sans">
 
-    <div class="header">
-        <h1>💧 AMAZONAS - Admin Dashboard</h1>
-        <button onclick="cargarTodo()">🔄 Actualizar Panel</button>
-    </div>
+    <div class="max-w-7xl mx-auto space-y-8">
+        <!-- Header -->
+        <header class="bg-blue-900 text-white p-6 rounded-2xl shadow-md flex justify-between items-center">
+            <div>
+                <h1 class="text-2xl font-bold">Panel de Control - AMAZONAS</h1>
+                <p class="text-blue-200 text-sm">Gestión de Pedidos y Repartidores</p>
+            </div>
+            <button onclick="cargarTodo()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-sm font-semibold transition">
+                🔄 Actualizar Datos
+            </button>
+        </header>
 
-    <div class="grid">
-        <!-- Formulario Crear Repartidor -->
-        <div class="card">
-            <h2>👤 Crear Cuenta de Repartidor</h2>
-            <form id="form-repartidor">
-                <div class="form-group">
-                    <input type="text" id="nombre_chofer" placeholder="Nombre completo" required>
-                </div>
-                <div class="form-group">
-                    <input type="email" id="email" placeholder="Correo electrónico (Login)" required>
-                </div>
-                <div class="form-group">
-                    <input type="password" id="password" placeholder="Contraseña de acceso" required>
-                </div>
-                <div class="form-group">
-                    <input type="text" id="vehiculo" placeholder="Vehículo (Ej: Moto Cargo)" required>
-                </div>
-                <div class="form-group">
-                    <input type="text" id="placa" placeholder="Placa (Ej: 4521-YNG)" required>
-                </div>
-                <div class="form-group">
-                    <input type="text" id="telefono" placeholder="WhatsApp / Teléfono" required>
-                </div>
-                <button type="submit">Guardar y Crear Acceso</button>
-            </form>
-        </div>
-
-        <!-- Flota de Repartidores -->
-        <div class="card">
-            <h2>🚚 Repartidores Registrados</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Chofer</th>
-                        <th>Credenciales</th>
-                        <th>Estado</th>
-                    </tr>
-                </thead>
-                <tbody id="tabla-repartidores"></tbody>
-            </table>
-        </div>
-    </div>
-
-    <!-- Gestión de Pedidos y Confirmación QR -->
-    <div class="card">
-        <h2>📦 Pedidos Recibidos y Confirmación de Pagos</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th># ID</th>
-                    <th>Cliente / Zona</th>
-                    <th>Total / Método</th>
-                    <th>Estado Pago</th>
-                    <th>Estado Pedido</th>
-                    <th>Asignar Repartidor</th>
-                    <th>Acciones Admin</th>
-                </tr>
-            </thead>
-            <tbody id="tabla-pedidos"></tbody>
-        </table>
-    </div>
-
-    <script>
-        let listaRepartidores = [];
-
-        async function cargarTodo() {
-            await cargarRepartidores();
-            await cargarPedidos();
-        }
-
-        async function cargarRepartidores() {
-            const res = await fetch('/api/admin/repartidores');
-            listaRepartidores = await res.json();
+        <!-- Grid Superior: Formulario y Tabla de Repartidores -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
             
-            const tbody = document.getElementById('tabla-repartidores');
-            tbody.innerHTML = listaRepartidores.map(r => `
-                <tr>
-                    <td><strong>${r.nombre_chofer}</strong><br><small>${r.vehiculo} (${r.placa})</small></td>
-                    <td>${r.email}<br><small>Tel: ${r.telefono}</small></td>
-                    <td><span class="badge ${r.estado === 'Online' ? 'badge-entregado' : 'badge-recibido'}">${r.estado}</span></td>
-                </tr>
-            `).join('');
-        }
+            <!-- Crear Repartidor -->
+            <section class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                <h2 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                    👤 Crear Cuenta de Repartidor
+                </h2>
+                <form id="formRepartidor" onsubmit="guardarRepartidor(event)" class="space-y-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Nombre Completo</label>
+                        <input type="text" id="rep_nombre" placeholder="Ej. Leonardo Juan Pérez" required class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-lg text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Correo Electrónico</label>
+                        <input type="email" id="rep_email" placeholder="juanperez@gmail.com" required class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-lg text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Contraseña</label>
+                        <input type="password" id="rep_password" placeholder="******" required class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-lg text-sm">
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Vehículo</label>
+                            <input type="text" id="rep_vehiculo" placeholder="Toyota Noah" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-lg text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Placa</label>
+                            <input type="text" id="rep_placa" placeholder="S/N" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-lg text-sm">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Teléfono</label>
+                        <input type="text" id="rep_telefono" placeholder="77755444" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-lg text-sm">
+                    </div>
 
-        async function cargarPedidos() {
-            const res = await fetch('/api/admin/pedidos');
-            const pedidos = await res.json();
+                    <button type="submit" id="btnGuardarRepartidor" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-bold text-sm transition mt-2">
+                        Guardar y Crear Acceso
+                    </button>
+                </form>
+            </section>
 
-            const tbody = document.getElementById('tabla-pedidos');
-            tbody.innerHTML = pedidos.map(p => {
-                const opcionesRepartidores = listaRepartidores.map(r => `
-                    <option value="${r.id}" ${p.repartidor_id === r.id ? 'selected' : ''}>${r.nombre_chofer}</option>
-                `).join('');
+            <!-- Lista de Repartidores -->
+            <section class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between">
+                <div>
+                    <h2 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                        🛺 Repartidores Registrados
+                    </h2>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-sm text-slate-600">
+                            <thead class="bg-slate-50 text-slate-800 font-semibold border-b border-slate-200">
+                                <tr>
+                                    <th class="p-3">Chofer</th>
+                                    <th class="p-3">Credenciales</th>
+                                    <th class="p-3">Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tablaRepartidores">
+                                <tr>
+                                    <td colspan="3" class="p-4 text-center text-slate-400">Cargando repartidores...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </div>
 
-                let claseEstado = 'badge-recibido';
-                if (p.estado === 'Aprobado') claseEstado = 'badge-aprobado';
-                if (p.estado === 'En camino') claseEstado = 'badge-encamino';
-                if (p.estado === 'Entregado') claseEstado = 'badge-entregado';
+        <!-- Tabla Inferior: Pedidos Recibidos -->
+        <section class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+            <h2 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                📦 Pedidos Recibidos y Confirmación de Pagos
+            </h2>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm text-slate-600">
+                    <thead class="bg-slate-50 text-slate-800 font-semibold border-b border-slate-200">
+                        <tr>
+                            <th class="p-3"># ID</th>
+                            <th class="p-3">Cliente / Zona</th>
+                            <th class="p-3">Total / Método</th>
+                            <th class="p-3">Estado Pedido</th>
+                            <th class="p-3">Asignar Repartidor</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tablaPedidos">
+                        <tr>
+                            <td colspan="5" class="p-4 text-center text-slate-400">Cargando pedidos...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
 
-                return `
-                    <tr>
-                        <td>#${p.id}</td>
-                        <td><strong>${p.cliente_nombre}</strong><br><small>📍 ${p.zona} - ${p.direccion}</small></td>
-                        <td>Bs. ${p.total}<br><small><strong>${p.metodo_pago}</strong></small></td>
-                        <td><span class="badge ${p.estado_pago === 'Pagado' ? 'badge-entregado' : 'badge-recibido'}">${p.estado_pago}</span></td>
-                        <td><span class="badge ${claseEstado}">${p.estado}</span></td>
-                        <td>
-                            <select id="select-rep-${p.id}">
-                                <option value="">Sin Asignar</option>
-                                ${opcionesRepartidores}
-                            </select>
-                            <button onclick="asignarRepartidor(${p.id})" style="padding:4px; font-size:11px;">Asignar</button>
-                        </td>
-                        <td>
-                            ${p.estado === 'Recibido' ? `
-                                <button class="btn-success" onclick="aprobarPedido(${p.id}, '${p.metodo_pago}')">
-                                    ${p.metodo_pago === 'QR' ? '✓ Validar QR y Aprobar' : '✓ Aprobar Pedido'}
-                                </button>
-                            ` : '✓ Validado'}
-                        </td>
-                    </tr>
-                `;
-            }).join('');
-        }
+    <!-- Script de Conexión con Backend -->
+    <script>
+        const API_URL = 'https://backend-amazonas.onrender.com';
+        let repartidoresCargados = [];
 
-        async function aprobarPedido(id, metodo) {
-            await fetch(`/api/admin/pedidos/${id}/aprobar`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ estado_pago: metodo === 'QR' ? 'Pagado' : 'Pendiente', estado: 'Aprobado' })
-            });
-            alert('Pedido aprobado con éxito.');
+        // Cargar todo al abrir la página
+        document.addEventListener('DOMContentLoaded', cargarTodo);
+
+        function cargarTodo() {
+            cargarRepartidores();
             cargarPedidos();
         }
 
-        async function asignarRepartidor(id) {
-            const repartidorId = document.getElementById(`select-rep-${id}`).value;
-            await fetch(`/api/admin/pedidos/${id}/asignar`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ repartidor_id: repartidorId })
-            });
-            alert('Repartidor asignado.');
-            cargarPedidos();
-        }
+        // 1. Guardar nuevo Repartidor
+        async function guardarRepartidor(event) {
+            event.preventDefault();
 
-        document.getElementById('form-repartidor').addEventListener('submit', async (e) => {
-            e.preventDefault();
+            const btn = document.getElementById('btnGuardarRepartidor');
+            const textoOriginal = btn.innerText;
+
+            btn.disabled = true;
+            btn.innerText = "⏳ Guardando en base de datos...";
+
             const payload = {
-                nombre_chofer: document.getElementById('nombre_chofer').value,
-                email: document.getElementById('email').value,
-                password: document.getElementById('password').value,
-                vehiculo: document.getElementById('vehiculo').value,
-                placa: document.getElementById('placa').value,
-                telefono: document.getElementById('telefono').value,
+                nombre: document.getElementById('rep_nombre').value,
+                email: document.getElementById('rep_email').value,
+                password: document.getElementById('rep_password').value,
+                vehiculo: document.getElementById('rep_vehiculo').value,
+                placa: document.getElementById('rep_placa').value,
+                telefono: document.getElementById('rep_telefono').value
             };
 
-            const res = await fetch('/api/admin/repartidores', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
+            try {
+                const res = await fetch(`${API_URL}/api/admin/repartidores`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
 
-            const data = await res.json();
-            if (!res.ok) return alert(data.error);
+                const data = await res.json();
 
-            alert('¡Cuenta de repartidor creada exitosamente!');
-            e.target.reset();
-            cargarTodo();
-        });
+                if (res.ok && data.success) {
+                    alert('✅ ¡Repartidor registrado correctamente!');
+                    document.getElementById('formRepartidor').reset();
+                    cargarRepartidores();
+                } else {
+                    alert(`❌ Error: ${data.error || 'No se pudo crear el repartidor'}`);
+                }
+            } catch (err) {
+                console.error(err);
+                alert('❌ Error de red al intentar registrar al repartidor.');
+            } finally {
+                btn.disabled = false;
+                btn.innerText = textoOriginal;
+            }
+        }
 
-        cargarTodo();
+        // 2. Cargar Repartidores
+        async function cargarRepartidores() {
+            const tabla = document.getElementById('tablaRepartidores');
+            try {
+                const res = await fetch(`${API_URL}/api/admin/repartidores`);
+                repartidoresCargados = await res.json();
+
+                if (repartidoresCargados.length === 0) {
+                    tabla.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-slate-400">No hay repartidores registrados.</td></tr>`;
+                    return;
+                }
+
+                tabla.innerHTML = repartidoresCargados.map(r => `
+                    <tr class="border-b border-slate-100 hover:bg-slate-50">
+                        <td class="p-3">
+                            <div class="font-bold text-slate-800">${r.nombre}</div>
+                            <div class="text-xs text-slate-400">${r.vehiculo || 'Sin vehículo'} (${r.placa || 'S/N'})</div>
+                        </td>
+                        <td class="p-3">
+                            <div class="text-xs font-semibold text-blue-600">${r.email}</div>
+                            <div class="text-xs text-slate-500">📱 ${r.telefono || 'Sin tel'}</div>
+                        </td>
+                        <td class="p-3">
+                            <span class="bg-green-100 text-green-700 px-2.5 py-1 rounded-full text-xs font-semibold">
+                                ${r.estado}
+                            </span>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (err) {
+                tabla.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-red-500">Error al cargar repartidores.</td></tr>`;
+            }
+        }
+
+        // 3. Cargar Pedidos
+        async function cargarPedidos() {
+            const tabla = document.getElementById('tablaPedidos');
+            try {
+                const res = await fetch(`${API_URL}/api/admin/pedidos`);
+                const pedidos = await res.json();
+
+                if (pedidos.length === 0) {
+                    tabla.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-400">No hay pedidos registrados aún.</td></tr>`;
+                    return;
+                }
+
+                tabla.innerHTML = pedidos.map(p => `
+                    <tr class="border-b border-slate-100 hover:bg-slate-50">
+                        <td class="p-3 font-bold text-slate-800">#${p.id}</td>
+                        <td class="p-3">
+                            <div class="font-semibold text-slate-800">${p.cliente_nombre}</div>
+                            <div class="text-xs text-slate-500">📱 ${p.cliente_telefono}</div>
+                            <div class="text-xs text-slate-400">📍 ${p.direccion}</div>
+                        </td>
+                        <td class="p-3">
+                            <div class="font-bold text-blue-900">Bs. ${parseFloat(p.total).toFixed(2)}</div>
+                            <div class="text-xs text-slate-500">${p.metodo_pago}</div>
+                        </td>
+                        <td class="p-3">
+                            <span class="bg-amber-100 text-amber-800 px-2.5 py-1 rounded-full text-xs font-semibold">
+                                ${p.estado}
+                            </span>
+                        </td>
+                        <td class="p-3">
+                            <select onchange="asignarRepartidor(${p.id}, this.value)" class="p-2 border border-slate-300 bg-white rounded-lg text-xs font-semibold">
+                                <option value="">-- Asignar Chofer --</option>
+                                ${repartidoresCargados.map(r => `
+                                    <option value="${r.id}" ${p.repartidor_id == r.id ? 'selected' : ''}>
+                                        ${r.nombre}
+                                    </option>
+                                `).join('')}
+                            </select>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (err) {
+                tabla.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-red-500">Error al cargar pedidos.</td></tr>`;
+            }
+        }
+
+        // 4. Asignar Repartidor a Pedido
+        async function asignarRepartidor(pedidoId, repartidorId) {
+            if (!repartidorId) return;
+
+            try {
+                const res = await fetch(`${API_URL}/api/admin/pedidos/${pedidoId}/asignar`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ repartidor_id: repartidorId })
+                });
+
+                if (res.ok) {
+                    alert('✅ Pedido asignado al repartidor correctamente.');
+                    cargarPedidos();
+                } else {
+                    alert('❌ Error al asignar repartidor.');
+                }
+            } catch (err) {
+                alert('❌ Error de conexión al asignar repartidor.');
+            }
+        }
     </script>
 </body>
 </html>
