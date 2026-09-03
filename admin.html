@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AMAZONAS - Panel Admin</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Librería SweetAlert2 para Notificaciones UI -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body class="bg-slate-100 p-4 md:p-8 font-sans">
 
@@ -15,14 +17,14 @@
                 <h1 class="text-2xl font-bold">Panel de Control - AMAZONAS</h1>
                 <p class="text-blue-200 text-sm">Gestión de Pedidos y Repartidores</p>
             </div>
-            <button onclick="cargarTodo()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-sm font-semibold transition">
+            <button onclick="cargarTodo()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-sm font-semibold transition flex items-center gap-2">
                 🔄 Actualizar Datos
             </button>
         </header>
 
-        <!-- Grid Superior: Formulario y Tabla de Repartidores -->
+        <!-- Grid Superior -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            
+
             <!-- Crear Repartidor -->
             <section class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
                 <h2 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
@@ -62,33 +64,31 @@
                 </form>
             </section>
 
-            <!-- Lista de Repartidores -->
-            <section class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between">
-                <div>
-                    <h2 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
-                        🛺 Repartidores Registrados
-                    </h2>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left text-sm text-slate-600">
-                            <thead class="bg-slate-50 text-slate-800 font-semibold border-b border-slate-200">
-                                <tr>
-                                    <th class="p-3">Chofer</th>
-                                    <th class="p-3">Credenciales</th>
-                                    <th class="p-3">Estado</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tablaRepartidores">
-                                <tr>
-                                    <td colspan="3" class="p-4 text-center text-slate-400">Cargando repartidores...</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
+            <!-- Repartidores Registrados -->
+            <section class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                <h2 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                    🛺 Repartidores Registrados
+                </h2>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm text-slate-600">
+                        <thead class="bg-slate-50 text-slate-800 font-semibold border-b border-slate-200">
+                            <tr>
+                                <th class="p-3">Chofer</th>
+                                <th class="p-3">Credenciales</th>
+                                <th class="p-3">Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tablaRepartidores">
+                            <tr>
+                                <td colspan="3" class="p-4 text-center text-slate-400">Cargando repartidores...</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </section>
         </div>
 
-        <!-- Tabla Inferior: Pedidos Recibidos -->
+        <!-- Pedidos Recibidos -->
         <section class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
             <h2 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
                 📦 Pedidos Recibidos y Confirmación de Pagos
@@ -114,12 +114,10 @@
         </section>
     </div>
 
-    <!-- Script de Conexión con Backend -->
     <script>
         const API_URL = 'https://backend-amazonas.onrender.com';
         let repartidoresCargados = [];
 
-        // Cargar todo al abrir la página
         document.addEventListener('DOMContentLoaded', cargarTodo);
 
         function cargarTodo() {
@@ -127,7 +125,15 @@
             cargarPedidos();
         }
 
-        // 1. Guardar nuevo Repartidor
+        const Toast = Swal.mixin({
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true
+        });
+
+        // 1. Guardar Repartidor
         async function guardarRepartidor(event) {
             event.preventDefault();
 
@@ -156,15 +162,29 @@
                 const data = await res.json();
 
                 if (res.ok && data.success) {
-                    alert('✅ ¡Repartidor registrado correctamente!');
+                    Swal.fire({
+                        title: '¡Registrado!',
+                        text: 'El repartidor se guardó con éxito.',
+                        icon: 'success',
+                        confirmButtonColor: '#1d4ed8'
+                    });
                     document.getElementById('formRepartidor').reset();
                     cargarRepartidores();
                 } else {
-                    alert(`❌ Error: ${data.error || 'No se pudo crear el repartidor'}`);
+                    Swal.fire({
+                        title: 'Error al registrar',
+                        text: data.error || 'No se pudo crear el repartidor',
+                        icon: 'error',
+                        confirmButtonColor: '#ef4444'
+                    });
                 }
             } catch (err) {
-                console.error(err);
-                alert('❌ Error de red al intentar registrar al repartidor.');
+                Swal.fire({
+                    title: 'Error de Red',
+                    text: 'No se pudo conectar con el servidor',
+                    icon: 'warning',
+                    confirmButtonColor: '#f59e0b'
+                });
             } finally {
                 btn.disabled = false;
                 btn.innerText = textoOriginal;
@@ -212,7 +232,7 @@
                 const res = await fetch(`${API_URL}/api/admin/pedidos`);
                 const pedidos = await res.json();
 
-                if (pedidos.length === 0) {
+                if (!Array.isArray(pedidos) || pedidos.length === 0) {
                     tabla.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-400">No hay pedidos registrados aún.</td></tr>`;
                     return;
                 }
@@ -235,7 +255,7 @@
                             </span>
                         </td>
                         <td class="p-3">
-                            <select onchange="asignarRepartidor(${p.id}, this.value)" class="p-2 border border-slate-300 bg-white rounded-lg text-xs font-semibold">
+                            <select onchange="asignarRepartidor(${p.id}, this.value)" class="p-2 border border-slate-300 bg-white rounded-lg text-xs font-semibold shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                                 <option value="">-- Asignar Chofer --</option>
                                 ${repartidoresCargados.map(r => `
                                     <option value="${r.id}" ${p.repartidor_id == r.id ? 'selected' : ''}>
@@ -247,7 +267,7 @@
                     </tr>
                 `).join('');
             } catch (err) {
-                tabla.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-red-500">Error al cargar pedidos.</td></tr>`;
+                tabla.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-red-500 font-semibold">⚠️ Error al conectar con la base de datos de pedidos.</td></tr>`;
             }
         }
 
@@ -263,13 +283,24 @@
                 });
 
                 if (res.ok) {
-                    alert('✅ Pedido asignado al repartidor correctamente.');
+                    Toast.fire({
+                        icon: 'success',
+                        title: `Pedido #${pedidoId} asignado al chofer`
+                    });
                     cargarPedidos();
                 } else {
-                    alert('❌ Error al asignar repartidor.');
+                    Swal.fire({
+                        title: 'Error',
+                        text: 'No se pudo asignar el repartidor',
+                        icon: 'error'
+                    });
                 }
             } catch (err) {
-                alert('❌ Error de conexión al asignar repartidor.');
+                Swal.fire({
+                    title: 'Error de Red',
+                    text: 'Fallo al procesar la asignación',
+                    icon: 'warning'
+                });
             }
         }
     </script>
