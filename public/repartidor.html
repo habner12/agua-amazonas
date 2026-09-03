@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Repartidores - AMAZONAS Express</title>
+    <style>
+        body { font-family: system-ui, -apple-system, sans-serif; background: #f3f4f6; margin: 0; padding: 15px; color: #111827; }
+        .card { background: white; border-radius: 12px; padding: 18px; margin-bottom: 15px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .login-box { max-width: 360px; margin: 40px auto; }
+        .control-panel { background: #1e293b; color: white; padding: 16px; border-radius: 12px; margin-bottom: 20px; }
+        .status-badge { padding: 6px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: bold; text-align: center; margin-top: 10px; }
+        .online { background: #10b981; color: white; }
+        .offline { background: #ef4444; color: white; }
+        input, button { width: 100%; padding: 12px; margin-top: 8px; border-radius: 8px; border: 1px solid #d1d5db; font-size: 1rem; box-sizing: border-box; }
+        button { background: #0070f3; color: white; border: none; font-weight: bold; cursor: pointer; }
+        .btn-green { background: #10b981; }
+        .btn-mapa { display: block; text-align: center; background: #0070f3; color: white; text-decoration: none; padding: 10px; border-radius: 8px; font-weight: bold; margin-top: 10px; }
+        .tag-zona { background: #eff6ff; color: #1e40af; padding: 4px 8px; border-radius: 6px; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <!-- PANTALLA 1: LOGIN -->
+    <div id="vista-login" class="card login-box">
+        <h2 style="text-align:center;">🚚 Acceso Repartidores</h2>
+        <form id="form-login">
+            <input type="email" id="login-email" placeholder="Correo electrónico" required>
+            <input type="password" id="login-password" placeholder="Contraseña" required>
+            <button type="submit">Ingresar a Turno</button>
+        </form>
+    </div>
+
+    <!-- PANTALLA 2: DASHBOARD -->
+    <div id="vista-dashboard" style="display:none;">
+        <div class="control-panel">
+            <h3 id="driver-nombre" style="margin:0;">Bienvenido</h3>
+            <p id="driver-vehiculo" style="margin:4px 0; color:#94a3b8; font-size:0.9rem;"></p>
+            
+            <div id="indicador-estado" class="status-badge offline">TURNO INACTIVO (OFFLINE)</div>
+            <button id="btn-toggle-estado" onclick="toggleEstado()" style="margin-top:10px;">🟢 Iniciar Turno (Ponerse Online)</button>
+            <button onclick="cerrarSesion()" style="background:#64748b; margin-top:6px;">Cerrar Sesión</button>
+        </div>
+
+        <h2>📦 Hoja de Rutas y Entregas</h2>
+        <div id="contenedor-pedidos">Cargando entregas...</div>
+    </div>
+
+    <script>
+        let repartidor = JSON.parse(localStorage.getItem('amazonas_driver')) || null;
+
+        function iniciar() {
+            if (repartidor) {
+                document.getElementById('vista-login').style.display = 'none';
+                document.getElementById('vista-dashboard').style.display = 'block';
+                document.getElementById('driver-nombre').innerText = repartidor.nombre_chofer;
+                document.getElementById('driver-vehiculo').innerText = `${repartidor.vehiculo} • Placa: ${repartidor.placa}`;
+                actualizarUIEstado();
+                cargarPedidos();
+            } else {
+                document.getElementById('vista-login').style.display = 'block';
+                document.getElementById('vista-dashboard').style.display = 'none';
+            }
+        }
+
+        document.getElementById('form-login').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+
+            const res = await fetch('/api/repartidores/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password })
+            });
+
+            const data = await res.json();
+            if (!res.ok) return alert(data.error);
+
+            repartidor = data.repartidor;
+            localStorage.setItem('amazonas_driver', JSON.stringify(repartidor));
+            iniciar();
+        });
+
+        function actualizarUIEstado() {
+            const badge = document.getElementById('indicador-estado');
+            const btn = document.getElementById('btn-toggle-estado');
+
+            if (repartidor.estado === 'Online') {
+                badge.className = 'status-badge online';
+                badge.innerText = '🟢 TURNO ACTIVO (EN LÍNEA)';
+                btn.innerText = '🔴 Finalizar Turno (Ponerse Offline)';
+                btn.style.background = '#ef4444';
+            } else {
+                badge.className = 'status-badge offline';
+                badge.innerText = '🔴 TURNO INACTIVO (OFFLINE)';
+                btn.innerText = '🟢 Iniciar Turno (Ponerse Online)';
+                btn.style.background = '#10b981';
+            }
+        }
+
+        async function toggleEstado() {
+            const nuevoEstado = repartidor.estado === 'Online' ? 'Offline' : 'Online';
+            await fetch(`/api/repartidores/${repartidor.id}/estado`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ estado: nuevoEstado })
+            });
+
+            repartidor.estado = nuevoEstado;
+            localStorage.setItem('amazonas_driver', JSON.stringify(repartidor));
+            actualizarUIEstado();
+        }
+
+        async function cargarPedidos() {
+            if (!repartidor) return;
+            const res = await fetch(`/api/repartidores/${repartidor.id}/pedidos`);
+            const pedidos = await res.json();
+
+            const contenedor = document.getElementById('contenedor-pedidos');
+            if (pedidos.length === 0) {
+                contenedor.innerHTML = '<div class="card"><p>No hay entregas pendientes en tu zona.</p></div>';
+                return;
+            }
+
+            contenedor.innerHTML = pedidos.map(p => `
+                <div class="card">
+                    <small>Pedido #${p.id} • ${p.horario_entrega}</small>
+                    <h3>${p.cliente_nombre}</h3>
+                    <p><strong>📍 Zona:</strong> <span class="tag-zona">${p.zona}</span></p>
+                    <p><strong>🏠 Dirección:</strong> ${p.direccion}</p>
+                    <p><strong>📞 Teléfono:</strong> <a href="tel:${p.cliente_telefono}">${p.cliente_telefono}</a></p>
+                    <p><strong>💰 Cobro:</strong> Bs. ${p.total} (${p.metodo_pago} - Status Pago: <strong>${p.estado_pago}</strong>)</p>
+                    
+                    <a class="btn-mapa" href="https://maps.google.com/?q=${p.latitud},${p.longitud}" target="_blank">🗺️ Navegar con Google Maps</a>
+
+                    ${p.estado === 'Aprobado' ? `
+                        <button class="btn-green" onclick="aceptarPedido(${p.id})">🚀 Aceptar Pedido e Iniciar Ruta</button>
+                    ` : ''}
+
+                    ${p.estado === 'En camino' ? `
+                        <button class="btn-green" style="background:#059669;" onclick="confirmarEntrega(${p.id}, '${p.metodo_pago}')">
+                            ${p.metodo_pago === 'Efectivo' ? '💵 Confirmar Cobro y Entregado' : '✅ Confirmar Pedido Entregado'}
+                        </button>
+                    ` : ''}
+                </div>
+            `).join('');
+        }
+
+        async function aceptarPedido(pedidoId) {
+            await fetch(`/api/pedidos/${pedidoId}/aceptar`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ repartidor_id: repartidor.id })
+            });
+            alert('¡Pedido aceptado! Estás en camino.');
+            cargarPedidos();
+        }
+
+        async function confirmarEntrega(pedidoId, metodoPago) {
+            await fetch(`/api/pedidos/${pedidoId}/entregar`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ metodo_pago: metodoPago })
+            });
+            alert('¡Entrega registrada con éxito!');
+            cargarPedidos();
+        }
+
+        function cerrarSesion() {
+            localStorage.removeItem('amazonas_driver');
+            repartidor = null;
+            iniciar();
+        }
+
+        iniciar();
+    </script>
+</body>
+</html>

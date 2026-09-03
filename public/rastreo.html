@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rastreo de Pedido en Vivo</title>
+    <style>
+        body { font-family: system-ui, -apple-system, sans-serif; background: #f0fdf4; margin: 0; padding: 20px; color: #166534; }
+        .card { background: white; border-radius: 16px; padding: 20px; max-width: 400px; margin: 10px auto; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); color: #1f2937; }
+        .status-tracker { display: flex; justify-content: space-between; margin: 20px 0; position: relative; }
+        .step { text-align: center; font-size: 0.7rem; font-weight: bold; width: 25%; color: #9ca3af; }
+        .dot { width: 16px; height: 16px; background: #e5e7eb; border-radius: 50%; margin: 0 auto 5px auto; }
+        .active { color: #059669; }
+        .active .dot { background: #10b981; box-shadow: 0 0 0 4px #d1fae5; }
+        .progress-container { width: 100%; background-color: #e5e7eb; border-radius: 8px; overflow: hidden; display: none; margin-bottom: 12px; }
+        .progress-bar { width: 0%; height: 6px; background-color: #10b981; transition: width 0.3s ease; }
+        input, button { padding: 10px; border-radius: 8px; border: 1px solid #d1d5db; }
+        button { background: #10b981; color: white; border: none; font-weight: bold; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <h2 style="text-align:center; color:#065f46; margin-top:0;">💧 Rastreo en Vivo</h2>
+
+        <div id="progress-container" class="progress-container">
+            <div id="progress-bar" class="progress-bar"></div>
+        </div>
+
+        <div style="display:flex; gap:8px;">
+            <input type="number" id="input-pedido" placeholder="Número de Pedido (Ej: 1)" style="width:100%;">
+            <button onclick="buscarPedido()">Buscar</button>
+        </div>
+
+        <div id="resultado-rastreo" style="display:none; margin-top:20px;">
+            <h3 id="txt-cliente" style="margin:0; font-size:1.1rem;"></h3>
+            <p id="txt-zona" style="color:#6b7280; margin:4px 0; font-size:0.85rem;"></p>
+
+            <div class="status-tracker">
+                <div class="step" id="st-recibido"><div class="dot"></div>Recibido</div>
+                <div class="step" id="st-aprobado"><div class="dot"></div>Aprobado</div>
+                <div class="step" id="st-encamino"><div class="dot"></div>En Camino</div>
+                <div class="step" id="st-entregado"><div class="dot"></div>Entregado</div>
+            </div>
+
+            <div style="background:#f9fafb; padding:12px; border-radius:8px; font-size:0.9rem;">
+                <p style="margin:4px 0;"><strong>Estado Actual:</strong> <span id="txt-estado" style="color:#059669; font-weight:bold;"></span></p>
+                <p style="margin:4px 0;"><strong>Pago:</strong> <span id="txt-pago"></span></p>
+                <p style="margin:4px 0;"><strong>Repartidor:</strong> <span id="txt-chofer">Buscando...</span></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let intervalRastreo = null;
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const pedidoIdParam = urlParams.get('id');
+        if (pedidoIdParam) {
+            document.getElementById('input-pedido').value = pedidoIdParam;
+            buscarPedido();
+        }
+
+        async function buscarPedido() {
+            const id = document.getElementById('input-pedido').value;
+            if (!id) return alert('Ingrese el número de pedido');
+
+            const pBox = document.getElementById('progress-container');
+            const pBar = document.getElementById('progress-bar');
+            pBox.style.display = 'block';
+            pBar.style.width = '50%';
+
+            try {
+                const res = await fetch(`/api/pedidos/${id}/rastreo`);
+                if (!res.ok) throw new Error('Pedido no encontrado');
+                const p = await res.json();
+
+                pBar.style.width = '100%';
+                setTimeout(() => pBox.style.display = 'none', 300);
+
+                document.getElementById('resultado-rastreo').style.display = 'block';
+                document.getElementById('txt-cliente').innerText = `Pedido #${p.id} - ${p.cliente_nombre}`;
+                document.getElementById('txt-zona').innerText = `📍 ${p.zona} (${p.direccion})`;
+                document.getElementById('txt-estado').innerText = p.estado;
+                document.getElementById('txt-pago').innerText = `${p.metodo_pago} (${p.estado_pago})`;
+
+                const pasos = ['Recibido', 'Aprobado', 'En camino', 'Entregado'];
+                const idx = pasos.indexOf(p.estado);
+
+                document.getElementById('st-recibido').className = 'step ' + (idx >= 0 ? 'active' : '');
+                document.getElementById('st-aprobado').className = 'step ' + (idx >= 1 ? 'active' : '');
+                document.getElementById('st-encamino').className = 'step ' + (idx >= 2 ? 'active' : '');
+                document.getElementById('st-entregado').className = 'step ' + (idx >= 3 ? 'active' : '');
+
+                if (p.nombre_chofer) {
+                    document.getElementById('txt-chofer').innerText = `${p.nombre_chofer} (${p.vehiculo} - ${p.placa})`;
+                } else {
+                    document.getElementById('txt-chofer').innerText = 'Asignando repartidor...';
+                }
+
+                // Iniciar actualización en tiempo real cada 5 segundos
+                if (!intervalRastreo) {
+                    intervalRastreo = setInterval(buscarPedido, 5000);
+                }
+
+            } catch (err) {
+                alert(err.message);
+                pBox.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>

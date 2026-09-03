@@ -1,0 +1,21 @@
+{
+  "name": "AMAZONAS Caranavi",
+  "short_name": "AMAZONAS",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#023e8a",
+  "theme_color": "#023e8a",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "https://via.placeholder.com/192x192/023e8a/ffffff?text=AMAZONAS",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://via.placeholder.com/512x512/023e8a/ffffff?text=AMAZONAS",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
