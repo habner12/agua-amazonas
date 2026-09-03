@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AMAZONAS - Pedir Agua</title>
+    <style>
+        body { font-family: system-ui, -apple-system, sans-serif; background: #eff6ff; margin: 0; padding: 20px; }
+        .card { background: white; max-width: 420px; margin: auto; padding: 20px; border-radius: 16px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
+        .progress-container { width: 100%; background-color: #e5e7eb; border-radius: 8px; overflow: hidden; display: none; margin-bottom: 12px; }
+        .progress-bar { width: 0%; height: 8px; background-color: #3b82f6; transition: width 0.3s ease; }
+        input, select, button { width: 100%; padding: 12px; margin-top: 10px; border-radius: 8px; border: 1px solid #cbd5e1; box-sizing: border-box; }
+        button { background: #0284c7; color: white; border: none; font-weight: bold; cursor: pointer; font-size: 1rem; }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <h2 style="color:#0369a1; text-align:center; margin-top:0;">💧 Realizar Pedido</h2>
+
+        <div id="progress-container" class="progress-container">
+            <div id="progress-bar" class="progress-bar"></div>
+        </div>
+        <p id="progress-text" style="display:none; font-size:12px; color:#0284c7; text-align:center; font-weight:bold;"></p>
+
+        <form id="form-pedido">
+            <input type="text" id="nombre" placeholder="Nombre completo" required>
+            <input type="text" id="telefono" placeholder="Número de WhatsApp" required>
+            <input type="text" id="direccion" placeholder="Dirección exacta" required>
+            <select id="zona">
+                <option value="Centro">Zona Centro</option>
+                <option value="Costanera">Zona Costanera</option>
+                <option value="Batallón">Zona Batallón</option>
+            </select>
+            <select id="metodo_pago">
+                <option value="Efectivo">Efectivo al Repartidor</option>
+                <option value="QR">Pago por QR</option>
+            </select>
+            <input type="number" id="total" value="15" readonly style="background:#f1f5f9; font-weight:bold;">
+            <button type="submit" id="btn-pedido">Confirmar Pedido</button>
+        </form>
+
+        <hr style="margin:20px 0; border:0; border-top:1px solid #e2e8f0;">
+
+        <!-- ENLACE DIRECTO AL RASTREO CONECTADO -->
+        <h3 style="margin-bottom:6px;">📦 ¿Ya hiciste un pedido?</h3>
+        <p style="font-size:0.85rem; color:#64748b; margin-top:0;">Sigue el estado en tiempo real de tu entrega:</p>
+        <button onclick="window.location.href='/rastreo.html'" style="background:#059669;">Rastrear Mi Pedido en Vivo 📍</button>
+    </div>
+
+    <script>
+        document.getElementById('form-pedido').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btn-pedido');
+            const pBox = document.getElementById('progress-container');
+            const pBar = document.getElementById('progress-bar');
+            const pText = document.getElementById('progress-text');
+
+            btn.disabled = true;
+            pBox.style.display = 'block';
+            pText.style.display = 'block';
+            pBar.style.width = '40%';
+            pText.innerText = 'Enviando pedido a la central...';
+
+            const payload = {
+                cliente_nombre: document.getElementById('nombre').value,
+                cliente_telefono: document.getElementById('telefono').value,
+                direccion: document.getElementById('direccion').value,
+                zona: document.getElementById('zona').value,
+                metodo_pago: document.getElementById('metodo_pago').value,
+                total: document.getElementById('total').value
+            };
+
+            try {
+                pBar.style.width = '80%';
+                const res = await fetch('/api/pedidos', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error);
+
+                pBar.style.width = '100%';
+                pText.innerText = '¡Pedido Confirmado!';
+
+                setTimeout(() => {
+                    // Redirección directa al rastreo en vivo cargando el id generado
+                    window.location.href = `/rastreo.html?id=${data.pedido_id}`;
+                }, 800);
+
+            } catch (err) {
+                alert('Error al registrar pedido');
+                btn.disabled = false;
+                pBox.style.display = 'none';
+                pText.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>
