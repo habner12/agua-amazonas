@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AMAZONAS - Pedir Agua</title>
-    <!-- Leaflet CSS para el mapa -->
+    <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         :root {
@@ -101,20 +101,17 @@
             font-weight: bold;
         }
 
-        /* MAIN CONTAINER */
         main {
             max-width: 900px;
             margin: 20px auto;
             padding: 0 16px;
         }
 
-        /* HERO BANNER */
         .hero-banner {
             background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
             border-radius: 20px;
             padding: 28px;
             color: white;
-            position: relative;
             margin-bottom: 20px;
         }
 
@@ -139,7 +136,6 @@
             opacity: 0.9;
         }
 
-        /* CLIMA CARD */
         .weather-card {
             background: #f0f9ff;
             border: 1px solid #bae6fd;
@@ -174,7 +170,6 @@
             color: var(--text-muted);
         }
 
-        /* CARDS / MODULOS GENERICS */
         .card-box {
             background: white;
             border-radius: 16px;
@@ -226,7 +221,32 @@
             background-color: #0f172a;
         }
 
-        /* GRID PRODUCTOS */
+        /* RESULTADOS DISEÑO PREMIUM (REEMPLAZA ALERTS) */
+        .result-box {
+            display: none;
+            margin-top: 14px;
+            background: #f0f9ff;
+            border-left: 4px solid var(--primary);
+            border-radius: 8px;
+            padding: 14px 16px;
+        }
+
+        .result-box h5 {
+            font-size: 0.85rem;
+            color: var(--primary-dark);
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .result-box p {
+            font-size: 0.9rem;
+            color: #1e293b;
+            margin-bottom: 0;
+            font-weight: 500;
+        }
+
         .grid-productos {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -274,7 +294,6 @@
             margin-top: auto;
         }
 
-        /* BANNER COMPROMISO AMAZONAS */
         .compromiso-banner {
             background-color: #f0fdf4;
             border: 1px solid #bbf7d0;
@@ -287,9 +306,6 @@
             color: #16a34a;
             font-size: 0.8rem;
             font-weight: 700;
-            display: flex;
-            align-items: center;
-            gap: 4px;
             margin-bottom: 6px;
         }
 
@@ -384,7 +400,6 @@
             border: 1px solid #e2e8f0;
         }
 
-        /* PROPINA BUTTONS */
         .propina-group {
             display: flex;
             gap: 8px;
@@ -405,6 +420,24 @@
         .btn-propina.active {
             background: #e0f2fe;
             border-color: #0284c7;
+        }
+
+        /* SECCIÓN DE QR PAGO */
+        .qr-box {
+            display: none;
+            text-align: center;
+            background: #f8fafc;
+            border: 1px dashed #0284c7;
+            border-radius: 12px;
+            padding: 14px;
+            margin-bottom: 14px;
+        }
+
+        .qr-box img {
+            width: 160px;
+            height: 160px;
+            border-radius: 8px;
+            margin: 8px 0;
         }
 
         .total-box {
@@ -432,6 +465,45 @@
             font-size: 0.95rem;
             cursor: pointer;
             box-shadow: 0 2px 4px rgba(2,132,199,0.3);
+        }
+
+        /* MODAL DE CONFIRMACIÓN DE PEDIDO */
+        .modal-confirm {
+            display: none;
+            position: fixed;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 24px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            z-index: 2000;
+            width: 90%;
+            max-width: 360px;
+            text-align: center;
+        }
+
+        .modal-confirm h4 {
+            color: var(--primary-dark);
+            font-size: 1.2rem;
+            margin-bottom: 8px;
+        }
+
+        .modal-confirm p {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 16px;
+        }
+
+        .modal-confirm button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
         }
     </style>
 </head>
@@ -479,6 +551,11 @@
                 <input type="number" id="peso-input" class="inline-input" placeholder="Ej: 68 (Kg)">
                 <button class="btn-action" onclick="calcularAgua()">Calcular</button>
             </div>
+            <!-- RESULTADO EMBEDDED ELEGANTE -->
+            <div class="result-box" id="res-agua">
+                <h5>💡 Recomendación para el clima de Caranavi:</h5>
+                <p id="res-agua-texto"></p>
+            </div>
         </div>
 
         <!-- ¿DONDE ESTA MI PEDIDO? -->
@@ -488,6 +565,11 @@
             <div class="inline-form">
                 <input type="number" id="num-pedido-input" class="inline-input" placeholder="Escribe el Nº de Pedido (Ej: 101)">
                 <button class="btn-action btn-dark" onclick="consultarPedido()">Consultar</button>
+            </div>
+            <!-- RESULTADO RASTREO EMBEDDED -->
+            <div class="result-box" id="res-pedido">
+                <h5>📦 Estado de tu Pedido:</h5>
+                <p id="res-pedido-texto"></p>
             </div>
         </div>
 
@@ -565,10 +647,17 @@
 
             <div class="form-group">
                 <label>💳 Método de Pago</label>
-                <select id="metodo_pago">
+                <select id="metodo_pago" onchange="evaluarMetodoPago(this.value)">
                     <option value="Efectivo">💵 Efectivo (Al entregar)</option>
-                    <option value="QR">📱 Transferencia QR</option>
+                    <option value="QR">📱 Transferencia QR Simple</option>
                 </select>
+            </div>
+
+            <!-- MÓDULO QR DINÁMICO DE PAGO -->
+            <div class="qr-box" id="qr-container">
+                <span style="font-size: 0.8rem; font-weight: bold; color: #0369a1;">Escanea para pagar con tu App Bancaria:</span>
+                <img id="qr-img" src="" alt="Código QR de Pago">
+                <p style="font-size: 0.75rem; color: #64748b;">Monto a transferir: <strong id="qr-monto" style="color:#0284c7;">Bs. 0.00</strong></p>
             </div>
 
             <div class="form-group">
@@ -587,6 +676,14 @@
 
             <button type="submit" class="btn-confirmar" id="btn-enviar">Confirmar y Enviar Pedido</button>
         </form>
+    </div>
+
+    <!-- MODAL CONFIRMACION MODERNO -->
+    <div class="modal-confirm" id="modal-success">
+        <div style="font-size: 2.5rem; margin-bottom: 8px;">🎉</div>
+        <h4>¡Pedido Confirmado!</h4>
+        <p id="modal-msg">Tu pedido ha sido recibido y está en camino.</p>
+        <button onclick="cerrarModal()">Entendido</button>
     </div>
 
     <!-- Leaflet JS -->
@@ -659,26 +756,69 @@
             let subtotal = carrito.reduce((sum, item) => sum + item.precio, 0);
             let total = subtotal + propina;
             document.getElementById('total-monto').innerText = `Bs. ${total.toFixed(2)}`;
+            document.getElementById('qr-monto').innerText = `Bs. ${total.toFixed(2)}`;
+            
+            if (document.getElementById('metodo_pago').value === 'QR') {
+                generarQR(total);
+            }
         }
 
+        function evaluarMetodoPago(metodo) {
+            const qrBox = document.getElementById('qr-container');
+            if (metodo === 'QR') {
+                qrBox.style.display = 'block';
+                let subtotal = carrito.reduce((sum, item) => sum + item.precio, 0);
+                generarQR(subtotal + propina);
+            } else {
+                qrBox.style.display = 'none';
+            }
+        }
+
+        function generarQR(monto) {
+            // QR simple dinámico con la API de QuickChart generando datos de cobro
+            const dataQR = `Cobro Amazonas Caranavi - Monto: Bs.${monto.toFixed(2)}`;
+            document.getElementById('qr-img').src = `https://quickchart.io/qr?text=${encodeURIComponent(dataQR)}&size=180`;
+        }
+
+        // CALCULADORA CON DISEÑO EMBEDDED
         function calcularAgua() {
             const peso = document.getElementById('peso-input').value;
-            if (!peso) return alert('Ingresa tu peso en Kg.');
-            const litros = (peso * 0.035).toFixed(1);
-            alert(`Para tu peso de ${peso}kg, deberías consumir aproximadamente ${litros} Litros de agua al día en el clima de Caranavi.`);
+            const resBox = document.getElementById('res-agua');
+            const resTexto = document.getElementById('res-agua-texto');
+
+            if (!peso || peso <= 0) {
+                resTexto.innerText = "Por favor, ingresa un peso válido en Kilogramos.";
+                resBox.style.display = "block";
+                return;
+            }
+
+            const litros = (peso * 0.035).toFixed(2);
+            const vasos = Math.round((litros * 1000) / 250);
+            resTexto.innerHTML = `Debes consumir aprox. <strong>${litros} Litros de agua al día</strong> (${vasos} vasos).`;
+            resBox.style.display = "block";
         }
 
+        // RASTREO CON DISEÑO EMBEDDED
         async function consultarPedido() {
             const numPedido = document.getElementById('num-pedido-input').value;
-            if (!numPedido) return alert('Por favor ingresa un número de pedido.');
+            const resBox = document.getElementById('res-pedido');
+            const resTexto = document.getElementById('res-pedido-texto');
+
+            if (!numPedido) {
+                resTexto.innerText = "Ingresa tu número de pedido para rastrearlo.";
+                resBox.style.display = "block";
+                return;
+            }
+
             try {
                 const res = await fetch(`${API_URL}/api/pedidos/${numPedido}`);
                 if (!res.ok) throw new Error('Pedido no encontrado');
                 const data = await res.json();
-                alert(`Pedido #${numPedido}:\nCliente: ${data.cliente_nombre}\nEstado: ${data.estado || 'En camino'}\nTotal: Bs. ${data.total}`);
+                resTexto.innerHTML = `Pedido <strong>#${numPedido}</strong> a nombre de <strong>${data.cliente_nombre}</strong>.<br>Estado: <span style="color:#0284c7; font-weight:bold;">${data.estado || 'En Camino 🚚'}</span> | Total: Bs. ${data.total}`;
             } catch (err) {
-                alert('No se encontró el pedido o la API no está respondiendo.');
+                resTexto.innerText = `No se encontró el pedido #${numPedido} en la base de datos de Amazonas.`;
             }
+            resBox.style.display = "block";
         }
 
         document.getElementById('form-pedido').addEventListener('submit', async (e) => {
@@ -690,7 +830,7 @@
 
             const btn = document.getElementById('btn-enviar');
             btn.disabled = true;
-            btn.innerText = 'Enviando...';
+            btn.innerText = 'Enviando pedido...';
 
             const payload = {
                 cliente_nombre: document.getElementById('cliente_nombre').value,
@@ -714,13 +854,18 @@
                 if (!res.ok) throw new Error('Error en el servidor');
 
                 const data = await res.json();
-                alert(`¡Pedido #${data.pedido_id || ''} enviado con éxito! Nos pondremos en contacto.`);
+                
+                // MOSTRAR MODAL PROFESIONAL DE SÉXITO
+                document.getElementById('modal-msg').innerHTML = `Tu pedido <strong>#${data.pedido_id || 'recibido'}</strong> por Bs. ${total.toFixed(2)} fue registrado correctamente.`;
+                document.getElementById('modal-success').style.display = 'block';
+
                 carrito = [];
                 propina = 0;
                 document.getElementById('cant-cart').innerText = '0';
                 actualizarTotal();
                 toggleCart(false);
                 document.getElementById('form-pedido').reset();
+                document.getElementById('qr-container').style.display = 'none';
             } catch (err) {
                 alert('Ocurrió un error al enviar el pedido: ' + err.message);
             } finally {
@@ -728,6 +873,10 @@
                 btn.innerText = 'Confirmar y Enviar Pedido';
             }
         });
+
+        function cerrarModal() {
+            document.getElementById('modal-success').style.display = 'none';
+        }
     </script>
 </body>
 </html>
