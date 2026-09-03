@@ -24,7 +24,7 @@
 
         <!-- Grid Superior -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-
+            
             <!-- Crear Repartidor -->
             <section class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
                 <h2 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
@@ -125,6 +125,7 @@
             cargarPedidos();
         }
 
+        // Configuración de alertas estéticas rápidas (Toasts)
         const Toast = Swal.mixin({
             toast: true,
             position: 'top-end',
@@ -227,49 +228,72 @@
 
         // 3. Cargar Pedidos
         async function cargarPedidos() {
-            const tabla = document.getElementById('tablaPedidos');
-            try {
-                const res = await fetch(`${API_URL}/api/admin/pedidos`);
-                const pedidos = await res.json();
+    const tabla = document.getElementById('tablaPedidos');
+    try {
+        const res = await fetch(`${API_URL}/api/admin/pedidos`, {
+            method: 'GET',
+            headers: { 'Cache-Control': 'no-cache' }
+        });
 
-                if (!Array.isArray(pedidos) || pedidos.length === 0) {
-                    tabla.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-400">No hay pedidos registrados aún.</td></tr>`;
-                    return;
-                }
-
-                tabla.innerHTML = pedidos.map(p => `
-                    <tr class="border-b border-slate-100 hover:bg-slate-50">
-                        <td class="p-3 font-bold text-slate-800">#${p.id}</td>
-                        <td class="p-3">
-                            <div class="font-semibold text-slate-800">${p.cliente_nombre}</div>
-                            <div class="text-xs text-slate-500">📱 ${p.cliente_telefono}</div>
-                            <div class="text-xs text-slate-400">📍 ${p.direccion}</div>
-                        </td>
-                        <td class="p-3">
-                            <div class="font-bold text-blue-900">Bs. ${parseFloat(p.total).toFixed(2)}</div>
-                            <div class="text-xs text-slate-500">${p.metodo_pago}</div>
-                        </td>
-                        <td class="p-3">
-                            <span class="bg-amber-100 text-amber-800 px-2.5 py-1 rounded-full text-xs font-semibold">
-                                ${p.estado}
-                            </span>
-                        </td>
-                        <td class="p-3">
-                            <select onchange="asignarRepartidor(${p.id}, this.value)" class="p-2 border border-slate-300 bg-white rounded-lg text-xs font-semibold shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                <option value="">-- Asignar Chofer --</option>
-                                ${repartidoresCargados.map(r => `
-                                    <option value="${r.id}" ${p.repartidor_id == r.id ? 'selected' : ''}>
-                                        ${r.nombre}
-                                    </option>
-                                `).join('')}
-                            </select>
-                        </td>
-                    </tr>
-                `).join('');
-            } catch (err) {
-                tabla.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-red-500 font-semibold">⚠️ Error al conectar con la base de datos de pedidos.</td></tr>`;
-            }
+        if (!res.ok) {
+            throw new Error(`HTTP error! status: ${res.status}`);
         }
+
+        const data = await res.json();
+        console.log("📦 Pedidos recibidos desde API:", data);
+
+        const pedidos = Array.isArray(data) ? data : (data.pedidos || []);
+
+        if (pedidos.length === 0) {
+            tabla.innerHTML = `
+                <tr>
+                    <td colspan="5" class="p-6 text-center text-slate-400 font-medium">
+                        Aún no hay pedidos registrados en la base de datos.
+                    </td>
+                </tr>`;
+            return;
+        }
+
+        tabla.innerHTML = pedidos.map(p => `
+            <tr class="border-b border-slate-100 hover:bg-slate-50 transition">
+                <td class="p-3 font-bold text-slate-800">#${p.id}</td>
+                <td class="p-3">
+                    <div class="font-semibold text-slate-800">${p.cliente_nombre}</div>
+                    <div class="text-xs text-slate-500">📱 ${p.cliente_telefono}</div>
+                    <div class="text-xs text-slate-400">📍 ${p.direccion}</div>
+                </td>
+                <td class="p-3">
+                    <div class="font-bold text-blue-900">Bs. ${parseFloat(p.total || 0).toFixed(2)}</div>
+                    <div class="text-xs text-slate-500">${p.metodo_pago}</div>
+                </td>
+                <td class="p-3">
+                    <span class="bg-amber-100 text-amber-800 px-2.5 py-1 rounded-full text-xs font-semibold">
+                        ${p.estado}
+                    </span>
+                </td>
+                <td class="p-3">
+                    <select onchange="asignarRepartidor(${p.id}, this.value)" class="p-2 border border-slate-300 bg-white rounded-lg text-xs font-semibold shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">-- Asignar Chofer --</option>
+                        ${repartidoresCargados.map(r => `
+                            <option value="${r.id}" ${p.repartidor_id == r.id ? 'selected' : ''}>
+                                ${r.nombre}
+                            </option>
+                        `).join('')}
+                    </select>
+                </td>
+            </tr>
+        `).join('');
+
+    } catch (err) {
+        console.error("❌ Error en cargarPedidos:", err);
+        tabla.innerHTML = `
+            <tr>
+                <td colspan="5" class="p-4 text-center text-red-500 font-semibold">
+                    ⚠️ Error al conectar con el servidor (${err.message}). Intenta recargar.
+                </td>
+            </tr>`;
+    }
+}
 
         // 4. Asignar Repartidor a Pedido
         async function asignarRepartidor(pedidoId, repartidorId) {
