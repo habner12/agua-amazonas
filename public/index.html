@@ -3,98 +3,508 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AMAZONAS - Pedir Agua</title>
+    <title>AMAZONAS - Caranavi App</title>
     <style>
-        body { font-family: system-ui, -apple-system, sans-serif; background: #eff6ff; margin: 0; padding: 20px; }
-        .card { background: white; max-width: 420px; margin: auto; padding: 20px; border-radius: 16px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
-        .progress-container { width: 100%; background-color: #e5e7eb; border-radius: 8px; overflow: hidden; display: none; margin-bottom: 12px; }
-        .progress-bar { width: 0%; height: 8px; background-color: #3b82f6; transition: width 0.3s ease; }
-        input, select, button { width: 100%; padding: 12px; margin-top: 10px; border-radius: 8px; border: 1px solid #cbd5e1; box-sizing: border-box; }
-        button { background: #0284c7; color: white; border: none; font-weight: bold; cursor: pointer; font-size: 1rem; }
+        :root {
+            --primary-blue: #0284c7;
+            --dark-blue: #0369a1;
+            --bg-light: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-light);
+            color: var(--text-main);
+            padding-bottom: 50px;
+        }
+
+        /* HEADER */
+        header {
+            background: #ffffff;
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo-box {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-icon {
+            width: 36px;
+            height: 36px;
+            background: #e0f2fe;
+            color: var(--primary-blue);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        .logo-text h1 {
+            font-size: 1.25rem;
+            color: #0369a1;
+            font-weight: 800;
+            line-height: 1;
+        }
+
+        .logo-text span {
+            font-size: 0.65rem;
+            color: #94a3b8;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        .btn-cart {
+            background-color: #0284c7;
+            color: white;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 20px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(2, 132, 199, 0.2);
+        }
+
+        .badge-cart {
+            background: white;
+            color: #0284c7;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+
+        /* MAIN CONTAINER */
+        main {
+            max-width: 1000px;
+            margin: 20px auto;
+            padding: 0 16px;
+        }
+
+        /* HERO BANNER AZUL */
+        .hero-banner {
+            background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+            border-radius: 20px;
+            padding: 28px;
+            color: white;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .hero-tag {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: inline-block;
+            margin-bottom: 12px;
+        }
+
+        .hero-banner h2 {
+            font-size: 1.6rem;
+            font-weight: 800;
+            margin-bottom: 6px;
+        }
+
+        .hero-banner p {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .mascota-box {
+            position: absolute;
+            right: 20px;
+            top: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            color: #1e293b;
+            padding: 10px 14px;
+            border-radius: 14px;
+            font-size: 0.75rem;
+            max-width: 170px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        /* CARD CLIMA */
+        .weather-card {
+            background: #f0f9ff;
+            border: 1px solid #bae6fd;
+            border-radius: 16px;
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .weather-info {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .temp {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: #0369a1;
+        }
+
+        .weather-text h4 {
+            font-size: 0.95rem;
+            color: #0369a1;
+            font-weight: 700;
+        }
+
+        .weather-text p {
+            font-size: 0.8rem;
+            color: #64748b;
+        }
+
+        /* CALCULADORA AGUA */
+        .calc-card {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+            margin-bottom: 28px;
+        }
+
+        .calc-card h3 {
+            font-size: 1rem;
+            color: #1e293b;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .calc-card p {
+            font-size: 0.8rem;
+            color: #64748b;
+            margin-bottom: 12px;
+        }
+
+        .calc-form {
+            display: flex;
+            gap: 10px;
+        }
+
+        .calc-input {
+            flex-grow: 1;
+            padding: 10px 14px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            outline: none;
+        }
+
+        .calc-btn {
+            background-color: #0284c7;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        /* PRODUCTOS GRID */
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 20px;
+        }
+
+        .product-card {
+            background: white;
+            border-radius: 16px;
+            padding: 16px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .product-img {
+            width: 100%;
+            height: 160px;
+            object-fit: cover;
+            border-radius: 12px;
+            margin-bottom: 12px;
+        }
+
+        .product-card h4 {
+            font-size: 1rem;
+            margin-bottom: 4px;
+        }
+
+        .product-price {
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: #0284c7;
+            margin-bottom: 12px;
+        }
+
+        .btn-add-item {
+            background-color: #e0f2fe;
+            color: #0284c7;
+            border: none;
+            padding: 10px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: auto;
+        }
+
+        /* MODAL CARRITO */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: white;
+            width: 90%;
+            max-width: 440px;
+            border-radius: 16px;
+            padding: 20px;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .form-group {
+            margin-bottom: 12px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+        }
+
+        .btn-submit {
+            width: 100%;
+            background: #0284c7;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 8px;
+        }
     </style>
 </head>
 <body>
 
-    <div class="card">
-        <h2 style="color:#0369a1; text-align:center; margin-top:0;">💧 Realizar Pedido</h2>
-
-        <div id="progress-container" class="progress-container">
-            <div id="progress-bar" class="progress-bar"></div>
+    <header>
+        <div class="logo-box">
+            <div class="logo-icon">💧</div>
+            <div class="logo-text">
+                <h1>AMAZONAS</h1>
+                <span>YUNGAS • CARANAVI</span>
+            </div>
         </div>
-        <p id="progress-text" style="display:none; font-size:12px; color:#0284c7; text-align:center; font-weight:bold;"></p>
+        <button class="btn-cart" onclick="abrirCarrito()">
+            🛒 Mi Carrito <span class="badge-cart" id="cant-cart">0</span>
+        </button>
+    </header>
 
-        <form id="form-pedido">
-            <input type="text" id="nombre" placeholder="Nombre completo" required>
-            <input type="text" id="telefono" placeholder="Número de WhatsApp" required>
-            <input type="text" id="direccion" placeholder="Dirección exacta" required>
-            <select id="zona">
-                <option value="Centro">Zona Centro</option>
-                <option value="Costanera">Zona Costanera</option>
-                <option value="Batallón">Zona Batallón</option>
-            </select>
-            <select id="metodo_pago">
-                <option value="Efectivo">Efectivo al Repartidor</option>
-                <option value="QR">Pago por QR</option>
-            </select>
-            <input type="number" id="total" value="15" readonly style="background:#f1f5f9; font-weight:bold;">
-            <button type="submit" id="btn-pedido">Confirmar Pedido</button>
-        </form>
+    <main>
+        <!-- HERO BANNER -->
+        <div class="hero-banner">
+            <span class="hero-tag">🌿 Caranavi - Capital Cafetalera de Bolivia</span>
+            <h2>Agua Purificada Ultra-Fresca a tu Puerta</h2>
+            <p>Hidratación garantizada para combatir el calor de los Yungas.</p>
+            <div class="mascota-box">
+                ¡Hola! Recuerda beber 2 Litros de agua hoy en Caranavi. 💧
+            </div>
+        </div>
 
-        <hr style="margin:20px 0; border:0; border-top:1px solid #e2e8f0;">
+        <!-- CLIMA -->
+        <div class="weather-card">
+            <div class="weather-info">
+                <span class="temp">27°C</span>
+                <div class="weather-text">
+                    <h4>¡Clima Tropical Caluroso (27°C)!</h4>
+                    <p>Atención: Alto consumo térmico. Es ideal pedir recargas de 20L.</p>
+                </div>
+            </div>
+            <div style="font-size: 1.8rem;">☀️</div>
+        </div>
 
-        <!-- ENLACE DIRECTO AL RASTREO CONECTADO -->
-        <h3 style="margin-bottom:6px;">📦 ¿Ya hiciste un pedido?</h3>
-        <p style="font-size:0.85rem; color:#64748b; margin-top:0;">Sigue el estado en tiempo real de tu entrega:</p>
-        <button onclick="window.location.href='/rastreo.html'" style="background:#059669;">Rastrear Mi Pedido en Vivo 📍</button>
+        <!-- CALCULADORA -->
+        <div class="calc-card">
+            <h3>📊 Calculadora de Agua para el Clima Yungueño</h3>
+            <p>Ingresa tu peso aproximado para saber cuánta agua exige tu cuerpo hoy:</p>
+            <div class="calc-form">
+                <input type="number" id="peso-input" class="calc-input" placeholder="Ej: 68 (Kg)">
+                <button class="calc-btn" onclick="calcularAgua()">Calcular</button>
+            </div>
+        </div>
+
+        <!-- PRODUCTOS -->
+        <h3 style="margin-bottom: 16px;">Nuestros Productos Disponibles</h3>
+        <div class="products-grid">
+            <div class="product-card">
+                <img src="https://images.unsplash.com/photo-1548839140-29a749e1bc4e?auto=format&fit=crop&w=400&q=80" class="product-img" alt="Botellón">
+                <h4>Botellón 20L (Recarga)</h4>
+                <div class="product-price">Bs. 15.00</div>
+                <button class="btn-add-item" onclick="agregarItem('Botellón 20L (Recarga)', 15)">Añadir al Carrito</button>
+            </div>
+            <div class="product-card">
+                <img src="https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&w=400&q=80" class="product-img" alt="Sachet">
+                <h4>Bolsa Sachet 500ml (Pack 20)</h4>
+                <div class="product-price">Bs. 10.00</div>
+                <button class="btn-add-item" onclick="agregarItem('Bolsa Sachet 500ml (Pack 20)', 10)">Añadir al Carrito</button>
+            </div>
+            <div class="product-card">
+                <img src="https://images.unsplash.com/photo-1602143407151-7111542de6e8?auto=format&fit=crop&w=400&q=80" class="product-img" alt="Pack Botellas">
+                <h4>Pack Botellas 500ml (12 u.)</h4>
+                <div class="product-price">Bs. 25.00</div>
+                <button class="btn-add-item" onclick="agregarItem('Pack Botellas 500ml (12 u.)', 25)">Añadir al Carrito</button>
+            </div>
+        </div>
+    </main>
+
+    <!-- MODAL -->
+    <div id="modal-pedidos" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>🛍️ Realizar Pedido</h3>
+                <button onclick="cerrarCarrito()" style="border:none; background:none; font-size:1.2rem; cursor:pointer;">✕</button>
+            </div>
+            <form id="form-pedidos">
+                <div class="form-group">
+                    <label>Nombre Completo</label>
+                    <input type="text" id="cliente_nombre" required>
+                </div>
+                <div class="form-group">
+                    <label>Teléfono</label>
+                    <input type="tel" id="cliente_telefono" required>
+                </div>
+                <div class="form-group">
+                    <label>Zona</label>
+                    <select id="cliente_zona">
+                        <option value="Zona Centro">Zona Centro</option>
+                        <option value="Zona Costanera">Zona Costanera</option>
+                        <option value="Zona Batallón">Zona Batallón</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Dirección Exacta</label>
+                    <input type="text" id="cliente_direccion" required>
+                </div>
+                <div class="form-group">
+                    <label>Método de Pago</label>
+                    <select id="metodo_pago">
+                        <option value="Efectivo al Repartidor">Efectivo al Repartidor</option>
+                        <option value="Pago por QR">Pago por QR</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn-submit">Confirmar Pedido</button>
+            </form>
+        </div>
     </div>
 
     <script>
-        document.getElementById('form-pedido').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const btn = document.getElementById('btn-pedido');
-            const pBox = document.getElementById('progress-container');
-            const pBar = document.getElementById('progress-bar');
-            const pText = document.getElementById('progress-text');
+        const API_URL = 'http://166.114.155.215:3000';
+        let carrito = [];
 
-            btn.disabled = true;
-            pBox.style.display = 'block';
-            pText.style.display = 'block';
-            pBar.style.width = '40%';
-            pText.innerText = 'Enviando pedido a la central...';
+        function agregarItem(nombre, precio) {
+            carrito.push({ nombre, precio });
+            document.getElementById('cant-cart').innerText = carrito.length;
+            alert(`${nombre} añadido al carrito.`);
+        }
+
+        function abrirCarrito() {
+            if (carrito.length === 0) return alert('El carrito está vacío.');
+            document.getElementById('modal-pedidos').style.display = 'flex';
+        }
+
+        function cerrarCarrito() {
+            document.getElementById('modal-pedidos').style.display = 'none';
+        }
+
+        function calcularAgua() {
+            const peso = document.getElementById('peso-input').value;
+            if (!peso) return alert('Ingresa tu peso en Kg.');
+            const litros = (peso * 0.035).toFixed(1);
+            alert(`Para tu peso de ${peso}kg, deberías consumir aproximadamente ${litros} Litros de agua al día en el clima de Caranavi.`);
+        }
+
+        document.getElementById('form-pedidos').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const total = carrito.reduce((sum, item) => sum + item.precio, 0);
 
             const payload = {
-                cliente_nombre: document.getElementById('nombre').value,
-                cliente_telefono: document.getElementById('telefono').value,
-                direccion: document.getElementById('direccion').value,
-                zona: document.getElementById('zona').value,
+                cliente_nombre: document.getElementById('cliente_nombre').value,
+                cliente_telefono: document.getElementById('cliente_telefono').value,
+                zona: document.getElementById('cliente_zona').value,
+                direccion: document.getElementById('cliente_direccion').value,
                 metodo_pago: document.getElementById('metodo_pago').value,
-                total: document.getElementById('total').value
+                total
             };
 
             try {
-                pBar.style.width = '80%';
-                const res = await fetch('/api/pedidos', {
+                const res = await fetch(`${API_URL}/api/pedidos`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
-
-                const data = await res.json();
-                if (!res.ok) throw new Error(data.error);
-
-                pBar.style.width = '100%';
-                pText.innerText = '¡Pedido Confirmado!';
-
-                setTimeout(() => {
-                    // Redirección directa al rastreo en vivo cargando el id generado
-                    window.location.href = `/rastreo.html?id=${data.pedido_id}`;
-                }, 800);
-
+                if (res.ok) {
+                    alert('¡Pedido registrado con éxito!');
+                    carrito = [];
+                    document.getElementById('cant-cart').innerText = '0';
+                    cerrarCarrito();
+                } else {
+                    alert('Error al procesar pedido.');
+                }
             } catch (err) {
-                alert('Error al registrar pedido');
-                btn.disabled = false;
-                pBox.style.display = 'none';
-                pText.style.display = 'none';
+                alert('No se pudo conectar con el servidor.');
             }
         });
     </script>
