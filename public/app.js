@@ -5,9 +5,9 @@ if ('serviceWorker' in navigator) {
 const API_URL = window.location.origin.includes('http') ? window.location.origin : 'http://127.0.0.1:3000';
 
 const productosAMAZONAS = [
-    { id: 1, nombre: 'Botellón 20L (Recarga)', precio: 15.00, img: 'https://images.unsplash.com/photo-1548839140-29a749e1bc4e?w=400' },
-    { id: 2, nombre: 'Bolsa Sachet 500ml (Pack 20)', precio: 10.00, img: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=400' },
-    { id: 3, nombre: 'Pack Botellas 500ml (12 u.)', precio: 25.00, img: 'https://images.unsplash.com/photo-1602143407151-7111542de6e8?w=400' }
+    { id: 1, nombre: 'Botellón 20L (Recarga)', precio: 15.00, img: 'img/botellon_20l.jpg' },
+    { id: 2, nombre: 'Bolsa Sachet 500ml (Pack 20)', precio: 10.00, img: 'img/bolsa_sachet.jpg' },
+    { id: 3, nombre: 'Pack Botellas 500ml (12 u.)', precio: 25.00, img: 'img/pack_botellas.jpg' }
 ];
 
 let carrito = [];
