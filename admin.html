@@ -12,14 +12,20 @@
 
     <div class="max-w-7xl mx-auto space-y-8">
         <!-- Header -->
-        <header class="bg-blue-900 text-white p-6 rounded-2xl shadow-md flex justify-between items-center">
+        <header class="bg-blue-900 text-white p-6 rounded-2xl shadow-md flex justify-between items-center flex-wrap gap-4">
             <div>
                 <h1 class="text-2xl font-bold">Panel de Control - AMAZONAS</h1>
                 <p class="text-blue-200 text-sm">Gestión de Pedidos, Confirmación QR, Despacho y Choferes</p>
             </div>
-            <button onclick="cargarTodo()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-sm font-semibold transition flex items-center gap-2">
-                🔄 Actualizar Datos
-            </button>
+            <div class="flex items-center gap-3">
+                <!-- Botón de Alarma Sonora -->
+                <button id="btnAudio" onclick="toggleAudio()" class="bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-xl text-sm font-semibold transition flex items-center gap-2">
+                    🔔 Activar Alarma
+                </button>
+                <button onclick="cargarTodo()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-sm font-semibold transition flex items-center gap-2">
+                    🔄 Actualizar Datos
+                </button>
+            </div>
         </header>
 
         <!-- Grid Superior -->
@@ -118,12 +124,68 @@
     <script>
         const API_URL = 'https://backend-amazonas.onrender.com';
         let repartidoresCargados = [];
+        let audioPermitido = false;
+        let ultimoMaxIdPedido = 0;
 
-        document.addEventListener('DOMContentLoaded', cargarTodo);
+        document.addEventListener('DOMContentLoaded', () => {
+            cargarTodo();
+            // Polling: Consultar pedidos automáticamente cada 10 segundos
+            setInterval(cargarPedidos, 10000);
+        });
 
         function cargarTodo() {
             cargarRepartidores();
             cargarPedidos();
+        }
+
+        // --- SISTEMA DE SONIDO / ALARMA DE COCINA ---
+        function toggleAudio() {
+            audioPermitido = !audioPermitido;
+            const btn = document.getElementById('btnAudio');
+            if (audioPermitido) {
+                btn.className = "bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-sm font-semibold transition flex items-center gap-2";
+                btn.innerText = "🔊 Alarma Activa";
+                reproducirAlarma();
+                Toast.fire({ icon: 'info', title: 'Alarma sonora activada para nuevos pedidos' });
+            } else {
+                btn.className = "bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-xl text-sm font-semibold transition flex items-center gap-2";
+                btn.innerText = "🔔 Activar Alarma";
+            }
+        }
+
+        function reproducirAlarma() {
+            if (!audioPermitido) return;
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                
+                // Tono 1
+                const osc1 = audioCtx.createOscillator();
+                const gain1 = audioCtx.createGain();
+                osc1.type = 'sine';
+                osc1.frequency.setValueAtTime(800, audioCtx.currentTime);
+                gain1.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                gain1.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.25);
+                osc1.connect(gain1);
+                gain1.connect(audioCtx.destination);
+                osc1.start();
+                osc1.stop(audioCtx.currentTime + 0.25);
+
+                // Tono 2 (Resonancia de aviso)
+                setTimeout(() => {
+                    const osc2 = audioCtx.createOscillator();
+                    const gain2 = audioCtx.createGain();
+                    osc2.type = 'sine';
+                    osc2.frequency.setValueAtTime(1050, audioCtx.currentTime);
+                    gain2.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                    gain2.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+                    osc2.connect(gain2);
+                    gain2.connect(audioCtx.destination);
+                    osc2.start();
+                    osc2.stop(audioCtx.currentTime + 0.4);
+                }, 180);
+            } catch (e) {
+                console.log("No se pudo reproducir audio:", e);
+            }
         }
 
         // Configuración de alertas estéticas rápidas (Toasts)
@@ -242,6 +304,19 @@
 
                 const data = await res.json();
                 const pedidos = Array.isArray(data) ? data : (data.pedidos || []);
+
+                // Verificación para sonar la alarma si ingresa un pedido nuevo
+                if (pedidos.length > 0) {
+                    const maxIdActual = Math.max(...pedidos.map(p => p.id));
+                    if (ultimoMaxIdPedido !== 0 && maxIdActual > ultimoMaxIdPedido) {
+                        reproducirAlarma();
+                        Toast.fire({
+                            icon: 'warning',
+                            title: `🔔 ¡NUEVO PEDIDO RECIBIDO (#${maxIdActual})!`
+                        });
+                    }
+                    ultimoMaxIdPedido = maxIdActual;
+                }
 
                 if (pedidos.length === 0) {
                     tabla.innerHTML = `
