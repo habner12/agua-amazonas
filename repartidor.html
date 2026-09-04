@@ -14,12 +14,29 @@
         .offline { background: #ef4444; color: white; }
         input, button { width: 100%; padding: 12px; margin-top: 8px; border-radius: 8px; border: 1px solid #d1d5db; font-size: 1rem; box-sizing: border-box; }
         button { background: #0070f3; color: white; border: none; font-weight: bold; cursor: pointer; }
+        button:disabled { background: #93c5fd; cursor: not-allowed; }
         .btn-green { background: #10b981; }
+        .btn-wsp { display: block; text-align: center; background: #25d366; color: white; text-decoration: none; padding: 10px; border-radius: 8px; font-weight: bold; margin-top: 8px; }
         .btn-mapa { display: block; text-align: center; background: #0070f3; color: white; text-decoration: none; padding: 10px; border-radius: 8px; font-weight: bold; margin-top: 10px; }
         .tag-zona { background: #eff6ff; color: #1e40af; padding: 4px 8px; border-radius: 6px; font-weight: bold; }
+        
+        /* Contenedor de la barra de progreso */
+        .progress-container { width: 100%; background-color: #e5e7eb; border-radius: 8px; overflow: hidden; display: none; margin-top: 10px; height: 6px; }
+        .progress-bar { width: 0%; height: 100%; background-color: #0070f3; transition: width 0.3s ease; }
+        .progress-bar-indeterminate { width: 100%; animation: loading 1.5s infinite linear; transform-origin: 0% 50%; }
+
+        @keyframes loading {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
     </style>
 </head>
 <body>
+
+    <!-- BARRA DE PROGRESO DE CARGA GLOBAL -->
+    <div id="global-progress" class="progress-container">
+        <div id="global-progress-bar" class="progress-bar progress-bar-indeterminate"></div>
+    </div>
 
     <!-- PANTALLA 1: LOGIN -->
     <div id="vista-login" class="card login-box">
@@ -27,7 +44,7 @@
         <form id="form-login">
             <input type="email" id="login-email" placeholder="Correo electrónico" required>
             <input type="password" id="login-password" placeholder="Contraseña" required>
-            <button type="submit">Ingresar a Turno</button>
+            <button type="submit" id="btn-login">Ingresar a Turno</button>
         </form>
     </div>
 
@@ -47,14 +64,20 @@
     </div>
 
     <script>
+        const API_URL = "https://backend-amazonas.onrender.com/api";
         let repartidor = JSON.parse(localStorage.getItem('amazonas_driver')) || null;
+
+        function mostrarCargando(activo) {
+            const progress = document.getElementById('global-progress');
+            progress.style.display = activo ? 'block' : 'none';
+        }
 
         function iniciar() {
             if (repartidor) {
                 document.getElementById('vista-login').style.display = 'none';
                 document.getElementById('vista-dashboard').style.display = 'block';
-                document.getElementById('driver-nombre').innerText = repartidor.nombre_chofer;
-                document.getElementById('driver-vehiculo').innerText = `${repartidor.vehiculo} • Placa: ${repartidor.placa}`;
+                document.getElementById('driver-nombre').innerText = `Hola, ${repartidor.nombre}`;
+                document.getElementById('driver-vehiculo').innerText = `${repartidor.vehiculo || 'Vehículo'} • Placa: ${repartidor.placa || 'S/N'}`;
                 actualizarUIEstado();
                 cargarPedidos();
             } else {
@@ -65,21 +88,40 @@
 
         document.getElementById('form-login').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const email = document.getElementById('login-email').value;
-            const password = document.getElementById('login-password').value;
+            const email = document.getElementById('login-email').value.trim();
+            const password = document.getElementById('login-password').value.trim();
+            const btnLogin = document.getElementById('btn-login');
 
-            const res = await fetch('/api/repartidores/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, password })
-            });
+            mostrarCargando(true);
+            btnLogin.disabled = true;
+            btnLogin.innerText = "Verificando datos...";
 
-            const data = await res.json();
-            if (!res.ok) return alert(data.error);
+            try {
+                const res = await fetch(`${API_URL}/repartidor/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
 
-            repartidor = data.repartidor;
-            localStorage.setItem('amazonas_driver', JSON.stringify(repartidor));
-            iniciar();
+                const data = await res.json();
+
+                if (!res.ok || !data.success) {
+                    alert(data.error || 'Correo o contraseña incorrectos.');
+                    return;
+                }
+
+                repartidor = data.repartidor;
+                repartidor.estado = repartidor.estado || 'Online';
+                localStorage.setItem('amazonas_driver', JSON.stringify(repartidor));
+                iniciar();
+            } catch (err) {
+                console.error("Error en login:", err);
+                alert("Error de conexión al intentar ingresar. Revisa tu conexión a internet.");
+            } finally {
+                mostrarCargando(false);
+                btnLogin.disabled = false;
+                btnLogin.innerText = "Ingresar a Turno";
+            }
         });
 
         function actualizarUIEstado() {
@@ -101,12 +143,6 @@
 
         async function toggleEstado() {
             const nuevoEstado = repartidor.estado === 'Online' ? 'Offline' : 'Online';
-            await fetch(`/api/repartidores/${repartidor.id}/estado`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ estado: nuevoEstado })
-            });
-
             repartidor.estado = nuevoEstado;
             localStorage.setItem('amazonas_driver', JSON.stringify(repartidor));
             actualizarUIEstado();
@@ -114,57 +150,99 @@
 
         async function cargarPedidos() {
             if (!repartidor) return;
-            const res = await fetch(`/api/repartidores/${repartidor.id}/pedidos`);
-            const pedidos = await res.json();
-
+            mostrarCargando(true);
             const contenedor = document.getElementById('contenedor-pedidos');
-            if (pedidos.length === 0) {
-                contenedor.innerHTML = '<div class="card"><p>No hay entregas pendientes en tu zona.</p></div>';
-                return;
+
+            try {
+                const res = await fetch(`${API_URL}/repartidor/pedidos/${repartidor.id}`);
+                const pedidos = await res.json();
+
+                if (!Array.isArray(pedidos) || pedidos.length === 0) {
+                    contenedor.innerHTML = '<div class="card"><p style="text-align:center;">No tienes entregas asignadas por el momento. 📦</p></div>';
+                    return;
+                }
+
+                contenedor.innerHTML = pedidos.map(p => `
+                    <div class="card">
+                        <small>Pedido #${p.id} • ${p.horario_entrega || 'Inmediata'}</small>
+                        <h3 style="margin:5px 0;">${p.cliente_nombre}</h3>
+                        <p style="margin:4px 0;"><strong>🏠 Dirección:</strong> ${p.direccion}</p>
+                        <p style="margin:4px 0;"><strong>📞 Teléfono:</strong> <a href="tel:${p.cliente_telefono}">${p.cliente_telefono}</a></p>
+                        <p style="margin:4px 0;"><strong>💰 Cobro Total:</strong> Bs. ${p.total} (${p.metodo_pago} - Estado Pago: <strong>${p.estado_pago || 'Pendiente'}</strong>)</p>
+                        
+                        <a class="btn-wsp" href="https://wa.me/591${p.cliente_telefono.replace(/\s+/g, '')}?text=Hola%20${encodeURIComponent(p.cliente_nombre)},%20soy%20tu%20repartidor%20de%20AMAZONAS.%20Estoy%20en%20camino%20con%20tu%20pedido%20%23${p.id}." target="_blank">📲 Contactar por WhatsApp</a>
+
+                        ${p.latitud && p.longitud ? `
+                            <a class="btn-mapa" href="https://maps.google.com/?q=${p.latitud},${p.longitud}" target="_blank">🗺️ Navegar con Google Maps</a>
+                        ` : ''}
+
+                        ${(p.estado === 'Recibido ⏳' || p.estado === 'Aprobado') ? `
+                            <button class="btn-green" onclick="aceptarPedido(${p.id})">🚀 Aceptar Pedido e Iniciar Ruta</button>
+                        ` : ''}
+
+                        ${p.estado === 'En camino 🚚' ? `
+                            <button class="btn-green" style="background:#059669;" onclick="confirmarEntrega(${p.id})">
+                                ${p.metodo_pago === 'Efectivo' ? '💵 Confirmar Cobro y Marcar Entregado' : '✅ Confirmar Pedido Entregado'}
+                            </button>
+                        ` : ''}
+
+                        ${p.estado === 'Entregado 🟢' ? `
+                            <p style="color:#10b981; font-weight:bold; margin-top:10px; text-align:center;">✅ Pedido Entregado</p>
+                        ` : ''}
+                    </div>
+                `).join('');
+            } catch (err) {
+                console.error("Error al obtener pedidos:", err);
+                contenedor.innerHTML = '<div class="card"><p style="color:#ef4444;">Error al cargar las entregas. Intenta recargar la página.</p></div>';
+            } finally {
+                mostrarCargando(false);
             }
-
-            contenedor.innerHTML = pedidos.map(p => `
-                <div class="card">
-                    <small>Pedido #${p.id} • ${p.horario_entrega}</small>
-                    <h3>${p.cliente_nombre}</h3>
-                    <p><strong>📍 Zona:</strong> <span class="tag-zona">${p.zona}</span></p>
-                    <p><strong>🏠 Dirección:</strong> ${p.direccion}</p>
-                    <p><strong>📞 Teléfono:</strong> <a href="tel:${p.cliente_telefono}">${p.cliente_telefono}</a></p>
-                    <p><strong>💰 Cobro:</strong> Bs. ${p.total} (${p.metodo_pago} - Status Pago: <strong>${p.estado_pago}</strong>)</p>
-                    
-                    <a class="btn-mapa" href="https://maps.google.com/?q=${p.latitud},${p.longitud}" target="_blank">🗺️ Navegar con Google Maps</a>
-
-                    ${p.estado === 'Aprobado' ? `
-                        <button class="btn-green" onclick="aceptarPedido(${p.id})">🚀 Aceptar Pedido e Iniciar Ruta</button>
-                    ` : ''}
-
-                    ${p.estado === 'En camino' ? `
-                        <button class="btn-green" style="background:#059669;" onclick="confirmarEntrega(${p.id}, '${p.metodo_pago}')">
-                            ${p.metodo_pago === 'Efectivo' ? '💵 Confirmar Cobro y Entregado' : '✅ Confirmar Pedido Entregado'}
-                        </button>
-                    ` : ''}
-                </div>
-            `).join('');
         }
 
         async function aceptarPedido(pedidoId) {
-            await fetch(`/api/pedidos/${pedidoId}/aceptar`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ repartidor_id: repartidor.id })
-            });
-            alert('¡Pedido aceptado! Estás en camino.');
-            cargarPedidos();
+            mostrarCargando(true);
+            try {
+                const res = await fetch(`${API_URL}/admin/pedidos/${pedidoId}/estado`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ estado: 'En camino 🚚' })
+                });
+
+                if (res.ok) {
+                    alert('¡Pedido aceptado! Ya puedes iniciar la entrega.');
+                    cargarPedidos();
+                } else {
+                    alert('No se pudo actualizar el estado del pedido.');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Error al conectar con el servidor.');
+            } finally {
+                mostrarCargando(false);
+            }
         }
 
-        async function confirmarEntrega(pedidoId, metodoPago) {
-            await fetch(`/api/pedidos/${pedidoId}/entregar`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ metodo_pago: metodoPago })
-            });
-            alert('¡Entrega registrada con éxito!');
-            cargarPedidos();
+        async function confirmarEntrega(pedidoId) {
+            mostrarCargando(true);
+            try {
+                const res = await fetch(`${API_URL}/admin/pedidos/${pedidoId}/estado`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ estado: 'Entregado 🟢' })
+                });
+
+                if (res.ok) {
+                    alert('¡Entrega registrada con éxito!');
+                    cargarPedidos();
+                } else {
+                    alert('No se pudo registrar la entrega.');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Error al conectar con el servidor.');
+            } finally {
+                mostrarCargando(false);
+            }
         }
 
         function cerrarSesion() {
@@ -173,6 +251,7 @@
             iniciar();
         }
 
+        // Iniciar la app
         iniciar();
     </script>
 </body>
