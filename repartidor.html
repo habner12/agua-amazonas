@@ -8,7 +8,7 @@
         body { font-family: system-ui, -apple-system, sans-serif; background: #f3f4f6; margin: 0; padding: 15px; color: #111827; }
         .card { background: white; border-radius: 12px; padding: 18px; margin-bottom: 15px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
         .login-box { max-width: 360px; margin: 40px auto; }
-        .control-panel { background: #1e293b; color: white; padding: 16px; border-radius: 12px; margin-bottom: 20px; }
+        .control-panel { background: #1e293b; color: white; padding: 16px; border-radius: 12px; margin-bottom: 15px; }
         .status-badge { padding: 6px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: bold; text-align: center; margin-top: 10px; }
         .online { background: #10b981; color: white; }
         .offline { background: #ef4444; color: white; }
@@ -20,10 +20,15 @@
         .btn-mapa { display: block; text-align: center; background: #0070f3; color: white; text-decoration: none; padding: 10px; border-radius: 8px; font-weight: bold; margin-top: 10px; }
         .tag-zona { background: #eff6ff; color: #1e40af; padding: 4px 8px; border-radius: 6px; font-weight: bold; }
         
+        /* Dashboard Stats / Resumen */
+        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 12px; text-align: center; }
+        .stat-box { background: rgba(255,255,255,0.1); padding: 10px 5px; border-radius: 8px; }
+        .stat-val { font-size: 1.1rem; font-weight: bold; color: #10b981; }
+        .stat-lbl { font-size: 0.75rem; color: #94a3b8; }
+
         /* Contenedor de la barra de progreso */
         .progress-container { width: 100%; background-color: #e5e7eb; border-radius: 8px; overflow: hidden; display: none; margin-top: 10px; height: 6px; }
-        .progress-bar { width: 0%; height: 100%; background-color: #0070f3; transition: width 0.3s ease; }
-        .progress-bar-indeterminate { width: 100%; animation: loading 1.5s infinite linear; transform-origin: 0% 50%; }
+        .progress-bar { width: 100%; height: 100%; background-color: #0070f3; animation: loading 1.5s infinite linear; transform-origin: 0% 50%; }
 
         @keyframes loading {
             0% { transform: translateX(-100%); }
@@ -35,7 +40,7 @@
 
     <!-- BARRA DE PROGRESO DE CARGA GLOBAL -->
     <div id="global-progress" class="progress-container">
-        <div id="global-progress-bar" class="progress-bar progress-bar-indeterminate"></div>
+        <div class="progress-bar"></div>
     </div>
 
     <!-- PANTALLA 1: LOGIN -->
@@ -56,7 +61,24 @@
             
             <div id="indicador-estado" class="status-badge offline">TURNO INACTIVO (OFFLINE)</div>
             <button id="btn-toggle-estado" onclick="toggleEstado()" style="margin-top:10px;">🟢 Iniciar Turno (Ponerse Online)</button>
-            <button onclick="cerrarSesion()" style="background:#64748b; margin-top:6px;">Cerrar Sesión</button>
+            
+            <!-- PANEL RESUMEN DIARIO (D) -->
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <div id="stat-entregados" class="stat-val">0</div>
+                    <div class="stat-lbl">Entregas Hoy</div>
+                </div>
+                <div class="stat-box">
+                    <div id="stat-efectivo" class="stat-val">Bs. 0</div>
+                    <div class="stat-lbl">Cobrado (Efectivo)</div>
+                </div>
+                <div class="stat-box">
+                    <div id="stat-qr" class="stat-val">Bs. 0</div>
+                    <div class="stat-lbl">Cobrado (QR)</div>
+                </div>
+            </div>
+
+            <button onclick="cerrarSesion()" style="background:#64748b; margin-top:12px;">Cerrar Sesión</button>
         </div>
 
         <h2>📦 Hoja de Rutas y Entregas</h2>
@@ -66,10 +88,33 @@
     <script>
         const API_URL = "https://backend-amazonas.onrender.com/api";
         let repartidor = JSON.parse(localStorage.getItem('amazonas_driver')) || null;
+        let conteoPedidosAnterior = -1;
+
+        function reproducirAlarmaNuevoPedido() {
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); // Nota D5
+                osc.frequency.setValueAtTime(880, audioCtx.currentTime + 0.15); // Nota A5
+                
+                gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.4);
+            } catch (e) {
+                console.log("Audio no permitido aún sin interacción del usuario.");
+            }
+        }
 
         function mostrarCargando(activo) {
-            const progress = document.getElementById('global-progress');
-            progress.style.display = activo ? 'block' : 'none';
+            document.getElementById('global-progress').style.display = activo ? 'block' : 'none';
         }
 
         function iniciar() {
@@ -80,6 +125,9 @@
                 document.getElementById('driver-vehiculo').innerText = `${repartidor.vehiculo || 'Vehículo'} • Placa: ${repartidor.placa || 'S/N'}`;
                 actualizarUIEstado();
                 cargarPedidos();
+                
+                // Actualizar automáticamente cada 15 segundos
+                setInterval(cargarPedidos, 15000);
             } else {
                 document.getElementById('vista-login').style.display = 'block';
                 document.getElementById('vista-dashboard').style.display = 'none';
@@ -116,7 +164,7 @@
                 iniciar();
             } catch (err) {
                 console.error("Error en login:", err);
-                alert("Error de conexión al intentar ingresar. Revisa tu conexión a internet.");
+                alert("Error de conexión al intentar ingresar. Revisa tu conexión.");
             } finally {
                 mostrarCargando(false);
                 btnLogin.disabled = false;
@@ -150,14 +198,42 @@
 
         async function cargarPedidos() {
             if (!repartidor) return;
-            mostrarCargando(true);
             const contenedor = document.getElementById('contenedor-pedidos');
 
             try {
                 const res = await fetch(`${API_URL}/repartidor/pedidos/${repartidor.id}`);
                 const pedidos = await res.json();
 
-                if (!Array.isArray(pedidos) || pedidos.length === 0) {
+                if (!Array.isArray(pedidos)) return;
+
+                // Sonar alarma si hay un nuevo pedido asignado
+                const pendientesYEnCamino = pedidos.filter(p => p.estado !== 'Entregado 🟢').length;
+                if (conteoPedidosAnterior !== -1 && pendientesYEnCamino > conteoPedidosAnterior) {
+                    reproducirAlarmaNuevoPedido();
+                }
+                conteoPedidosAnterior = pendientesYEnCamino;
+
+                // Actualizar Panel de Resumen Diario (D)
+                const hoy = new Date().toISOString().split('T')[0];
+                const entregadosHoy = pedidos.filter(p => p.estado === 'Entregado 🟢' && p.fecha && p.fecha.startsWith(hoy));
+                
+                let totalEfectivo = 0;
+                let totalQR = 0;
+
+                entregadosHoy.forEach(p => {
+                    const monto = parseFloat(p.total) || 0;
+                    if (p.metodo_pago === 'Efectivo') {
+                        totalEfectivo += monto;
+                    } else {
+                        totalQR += monto;
+                    }
+                });
+
+                document.getElementById('stat-entregados').innerText = entregadosHoy.length;
+                document.getElementById('stat-efectivo').innerText = `Bs. ${totalEfectivo.toFixed(2)}`;
+                document.getElementById('stat-qr').innerText = `Bs. ${totalQR.toFixed(2)}`;
+
+                if (pedidos.length === 0) {
                     contenedor.innerHTML = '<div class="card"><p style="text-align:center;">No tienes entregas asignadas por el momento. 📦</p></div>';
                     return;
                 }
@@ -193,9 +269,6 @@
                 `).join('');
             } catch (err) {
                 console.error("Error al obtener pedidos:", err);
-                contenedor.innerHTML = '<div class="card"><p style="color:#ef4444;">Error al cargar las entregas. Intenta recargar la página.</p></div>';
-            } finally {
-                mostrarCargando(false);
             }
         }
 
@@ -251,7 +324,6 @@
             iniciar();
         }
 
-        // Iniciar la app
         iniciar();
     </script>
 </body>
